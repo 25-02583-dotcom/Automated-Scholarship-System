@@ -4,7 +4,6 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 
 public class ApplicantPanel {
     public static void createAndShowApplicantDashboard(Applicant currentUser) {
@@ -36,12 +35,13 @@ public class ApplicantPanel {
         JPanel body = new JPanel();
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setBackground(AutomatedApplication.BG_SOFT);
-        body.setBorder(new EmptyBorder(18, 26, 18, 26));
+        body.setBorder(new EmptyBorder(22, 26, 22, 26));
 
         JPanel banner = AutomatedApplication.createRoundedPanel(AutomatedApplication.PRIMARY_DARK, null, 18);
         banner.setLayout(new BorderLayout());
         banner.setBorder(new EmptyBorder(20, 24, 20, 24));
         banner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 108));
+        banner.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel welcomeLbl = new JLabel("Welcome, " + currentUser.getName());
         welcomeLbl.setFont(new Font("Segoe UI", Font.BOLD, 21));
@@ -64,100 +64,127 @@ public class ApplicantPanel {
         secTitle.setForeground(AutomatedApplication.TEXT_DARK);
         secTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel cardsGrid = new JPanel(new GridLayout(2, 2, 16, 16));
-        cardsGrid.setOpaque(false);
-        cardsGrid.setMaximumSize(new Dimension(Integer.MAX_VALUE, 360));
+        JPanel cardsRow = new JPanel(new GridLayout(1, 2, 20, 0));
+        cardsRow.setOpaque(false);
+        cardsRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cardsRow.setPreferredSize(new Dimension(0, 205));
+        cardsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 215));
 
-        cardsGrid.add(createActionCard(
+        cardsRow.add(createActionCard(
+            "PROGRAMS",
+            new Color(224, 231, 255),
+            AutomatedApplication.PRIMARY_ACCENT,
             "Select Scholarship Program",
-            "Browse any available programs.",
-            "Continue >",
+            "Browse available scholarship programs, check requirements, and apply.",
+            "Browse Programs  ->",
+            AutomatedApplication.PRIMARY_ACCENT,
             e -> openScholarshipProgramsDialog(frame, currentUser)
         ));
 
-        cardsGrid.add(createActionCard(
-            "Submit Application",
-            "Enter student details, upload document metadata, validate requirements, and assess eligibility.",
-            "Continue >",
-            e -> openSubmitApplicationDialog(frame, currentUser)
-        ));
-
-        cardsGrid.add(createActionCard(
+        cardsRow.add(createActionCard(
+            "TRACKING",
+            new Color(220, 252, 231),
+            new Color(21, 128, 61),
             "View My Application Status",
-            "Track your real-time application status and disbursement progress.",
-            "Continue >",
+            "Track your real-time application status, document check, and disbursement.",
+            "Check Status  ->",
+            new Color(21, 128, 61),
             e -> openViewStatusDialog(frame, currentUser)
         ));
 
-        cardsGrid.add(createActionCard(
-            "Logout",
-            "Save changes and return to the login screen.",
-            "Logout >",
-            e -> {
-                ScholarshipManager.saveAllData();
-                frame.dispose();
-                LoginPanel.createAndShowLoginWindow();
-            }
-        ));
-
         body.add(banner);
-        body.add(Box.createRigidArea(new Dimension(0, 16)));
+        body.add(Box.createVerticalGlue());
+        body.add(Box.createRigidArea(new Dimension(0, 18)));
         body.add(secTitle);
-        body.add(Box.createRigidArea(new Dimension(0, 10)));
-        body.add(cardsGrid);
+        body.add(Box.createRigidArea(new Dimension(0, 14)));
+        body.add(cardsRow);
+        body.add(Box.createVerticalGlue());
         frame.add(body, BorderLayout.CENTER);
 
         JPanel footer = new JPanel(new BorderLayout());
         footer.setBackground(AutomatedApplication.PRIMARY_DARK);
-        footer.setPreferredSize(new Dimension(0, 38));
+        footer.setPreferredSize(new Dimension(0, 46));
         footer.setBorder(new EmptyBorder(0, 26, 0, 26));
+
         JLabel footLbl = new JLabel("Automated Scholarship Application System  •  Applicant Portal");
         footLbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         footLbl.setForeground(new Color(203, 213, 225));
+
+        JButton logoutBtn = new JButton("Logout");
+        logoutBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        logoutBtn.setForeground(Color.WHITE);
+        logoutBtn.setBackground(AutomatedApplication.BTN_RED);
+        logoutBtn.setFocusPainted(false);
+        logoutBtn.setBorderPainted(false);
+        logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        logoutBtn.setPreferredSize(new Dimension(96, 30));
+        logoutBtn.addActionListener(e -> {
+            ScholarshipManager.saveAllData();
+            frame.dispose();
+            LoginPanel.createAndShowLoginWindow();
+        });
+
         footer.add(footLbl, BorderLayout.WEST);
+        footer.add(logoutBtn, BorderLayout.EAST);
         frame.add(footer, BorderLayout.SOUTH);
 
         frame.setVisible(true);
     }
 
-    private static JPanel createActionCard(String title, String desc, String linkText, java.awt.event.ActionListener action) {
+    private static JPanel createActionCard(
+            String badgeText,
+            Color badgeBg,
+            Color badgeFg,
+            String title,
+            String desc,
+            String btnText,
+            Color btnColor,
+            java.awt.event.ActionListener action
+    ) {
         JPanel card = AutomatedApplication.createRoundedPanel(
-            AutomatedApplication.CARD_TINT, new Color(165, 180, 252), 16
+            Color.WHITE, new Color(199, 210, 254), 16
         );
-        card.setLayout(new BorderLayout(0, 6));
-        card.setBorder(new EmptyBorder(16, 20, 16, 20));
+        card.setLayout(new BorderLayout(0, 10));
+        card.setBorder(new EmptyBorder(18, 22, 18, 22));
 
-        JPanel topText = new JPanel();
-        topText.setLayout(new BoxLayout(topText, BoxLayout.Y_AXIS));
-        topText.setOpaque(false);
+        JLabel badgeLbl = new JLabel(" " + badgeText + " ");
+        badgeLbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        badgeLbl.setForeground(badgeFg);
+        badgeLbl.setBackground(badgeBg);
+        badgeLbl.setOpaque(true);
+        badgeLbl.setBorder(new EmptyBorder(3, 8, 3, 8));
+        badgeLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblTitle = new JLabel(title);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblTitle.setForeground(AutomatedApplication.TEXT_DARK);
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblDesc = new JLabel(desc);
+        JLabel lblDesc = new JLabel("<html><div style='color:#64748b; font-size:12px; line-height:1.35;'>" + desc + "</div></html>");
         lblDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblDesc.setForeground(AutomatedApplication.TEXT_MUTED);
         lblDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        JPanel topText = new JPanel();
+        topText.setLayout(new BoxLayout(topText, BoxLayout.Y_AXIS));
+        topText.setOpaque(false);
+        topText.add(badgeLbl);
+        topText.add(Box.createRigidArea(new Dimension(0, 10)));
         topText.add(lblTitle);
-        topText.add(Box.createRigidArea(new Dimension(0, 4)));
+        topText.add(Box.createRigidArea(new Dimension(0, 5)));
         topText.add(lblDesc);
 
-        JButton linkBtn = new JButton(linkText);
-        linkBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        linkBtn.setForeground(AutomatedApplication.PRIMARY_ACCENT);
-        linkBtn.setBorderPainted(false);
-        linkBtn.setContentAreaFilled(false);
-        linkBtn.setFocusPainted(false);
-        linkBtn.setMargin(new Insets(0, 0, 0, 0));
-        linkBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        linkBtn.setHorizontalAlignment(SwingConstants.LEFT);
-        linkBtn.addActionListener(action);
+        JButton actionBtn = AutomatedApplication.createRoundedButton(btnText, btnColor, Color.WHITE, 8);
+        actionBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        actionBtn.setPreferredSize(new Dimension(145, 34));
+        actionBtn.addActionListener(action);
 
-        card.add(topText, BorderLayout.NORTH);
-        card.add(linkBtn, BorderLayout.SOUTH);
+        JPanel bottomRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        bottomRow.setOpaque(false);
+        bottomRow.add(actionBtn);
+
+        card.add(topText, BorderLayout.CENTER);
+        card.add(bottomRow, BorderLayout.SOUTH);
         return card;
     }
 
@@ -343,7 +370,7 @@ public class ApplicantPanel {
 
     public static void openSubmitApplicationDialog(JFrame parent, Applicant currentUser, String preselectedProgram) {
         JDialog dialog = new JDialog(parent, "Submit Application", true);
-        dialog.setSize(700, 440);
+        dialog.setSize(700, 380);
         dialog.setLocationRelativeTo(parent);
         dialog.setLayout(new GridBagLayout());
         dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
@@ -391,17 +418,24 @@ public class ApplicantPanel {
         txtIncome.setPreferredSize(new Dimension(0, 32));
 
         JTextField txtDocName = new JTextField();
+        txtDocName.setEditable(false);
         txtDocName.setPreferredSize(new Dimension(0, 32));
 
-        JTextField txtExpiry = new JTextField();
-        txtExpiry.setPreferredSize(new Dimension(0, 32));
+        JButton browseBtn = AutomatedApplication.createRoundedButton(
+            "Upload File", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 8
+        );
+        browseBtn.setPreferredSize(new Dimension(110, 32));
+
+        JPanel fileUploadPanel = new JPanel(new BorderLayout(6, 0));
+        fileUploadPanel.setOpaque(false);
+        fileUploadPanel.add(txtDocName, BorderLayout.CENTER);
+        fileUploadPanel.add(browseBtn, BorderLayout.EAST);
 
         JButton submitBtn = AutomatedApplication.createRoundedButton(
             "Submit Application", AutomatedApplication.BTN_GREEN, Color.WHITE, 10
         );
         submitBtn.setPreferredSize(new Dimension(0, 40));
 
-        // Row 0 & 1: Applicant ID | Full Name
         gbc.insets = new Insets(4, 0, 2, 10);
         gbc.gridx = 0; gbc.gridy = 0; card.add(new JLabel("Applicant ID:"), gbc);
         gbc.insets = new Insets(4, 10, 2, 0);
@@ -412,7 +446,6 @@ public class ApplicantPanel {
         gbc.insets = new Insets(0, 10, 8, 0);
         gbc.gridx = 1; gbc.gridy = 1; card.add(txtName, gbc);
 
-        // Row 2 & 3: Scholarship Program | Document Category
         gbc.insets = new Insets(4, 0, 2, 10);
         gbc.gridx = 0; gbc.gridy = 2; card.add(new JLabel("Scholarship Program:"), gbc);
         gbc.insets = new Insets(4, 10, 2, 0);
@@ -423,7 +456,6 @@ public class ApplicantPanel {
         gbc.insets = new Insets(0, 10, 8, 0);
         gbc.gridx = 1; gbc.gridy = 3; card.add(cmbDocType, gbc);
 
-        // Row 4 & 5: GWA | Annual Income
         gbc.insets = new Insets(4, 0, 2, 10);
         gbc.gridx = 0; gbc.gridy = 4; card.add(new JLabel("GWA (1.00 - 3.00):"), gbc);
         gbc.insets = new Insets(4, 10, 2, 0);
@@ -434,20 +466,15 @@ public class ApplicantPanel {
         gbc.insets = new Insets(0, 10, 8, 0);
         gbc.gridx = 1; gbc.gridy = 5; card.add(txtIncome, gbc);
 
-        // Row 6 & 7: Document File | Expiry Date
-        gbc.insets = new Insets(4, 0, 2, 10);
-        gbc.gridx = 0; gbc.gridy = 6; card.add(new JLabel("Document File (.pdf/.jpg/.png):"), gbc);
-        gbc.insets = new Insets(4, 10, 2, 0);
-        gbc.gridx = 1; gbc.gridy = 6; card.add(new JLabel("Expiry Date (YYYY-MM-DD):"), gbc);
+        gbc.insets = new Insets(4, 0, 2, 0);
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
+        card.add(new JLabel("Upload Document (.pdf/.jpg/.png):"), gbc);
 
-        gbc.insets = new Insets(0, 0, 12, 10);
-        gbc.gridx = 0; gbc.gridy = 7; card.add(txtDocName, gbc);
-        gbc.insets = new Insets(0, 10, 12, 0);
-        gbc.gridx = 1; gbc.gridy = 7; card.add(txtExpiry, gbc);
+        gbc.insets = new Insets(0, 0, 12, 0);
+        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2;
+        card.add(fileUploadPanel, gbc);
 
-        // Row 8: Full-width Submit Button
-        gbc.gridx = 0; gbc.gridy = 8;
-        gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2;
         gbc.insets = new Insets(6, 0, 0, 0);
         card.add(submitBtn, gbc);
 
@@ -458,6 +485,15 @@ public class ApplicantPanel {
         outer.insets = new Insets(14, 14, 14, 14);
         dialog.add(card, outer);
 
+        browseBtn.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Select Document File");
+            int result = chooser.showOpenDialog(dialog);
+            if (result == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
+                txtDocName.setText(chooser.getSelectedFile().getName());
+            }
+        });
+
         submitBtn.addActionListener(e -> {
             String studentId = txtStudentId.getText().trim();
             String name = txtName.getText().trim();
@@ -466,10 +502,9 @@ public class ApplicantPanel {
             String gwaRaw = txtGwa.getText().trim();
             String incomeRaw = txtIncome.getText().trim();
             String docRaw = txtDocName.getText().trim();
-            String expiryRaw = txtExpiry.getText().trim();
 
             if (studentId.isEmpty() || name.isEmpty() || program == null ||
-                gwaRaw.isEmpty() || incomeRaw.isEmpty() || docRaw.isEmpty() || expiryRaw.isEmpty()) {
+                gwaRaw.isEmpty() || incomeRaw.isEmpty() || docRaw.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Missing information. Please complete all required fields.", "Missing Info", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -496,24 +531,17 @@ public class ApplicantPanel {
                 return;
             }
 
-            LocalDate expiryDate;
-            try {
-                expiryDate = LocalDate.parse(expiryRaw);
-            } catch (DateTimeParseException ex) {
-                JOptionPane.showMessageDialog(dialog, "Invalid date format. Use YYYY-MM-DD.", "Date Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
             currentUser.setGwa(gwa);
 
+            LocalDate defaultExpiry = LocalDate.now().plusYears(1);
             String docId = "DOC-" + (ScholarshipManager.applicationList.size() + 101);
             GovernmentDocument doc;
             if ("Academic Record".equals(docType)) {
-                doc = new GovernmentDocument.AcademicRecord(docId, docRaw, LocalDate.now(), expiryDate, gwa);
+                doc = new GovernmentDocument.AcademicRecord(docId, docRaw, LocalDate.now(), defaultExpiry, gwa);
             } else if ("Income Certificate".equals(docType)) {
-                doc = new GovernmentDocument.IncomeCertificate(docId, docRaw, LocalDate.now(), expiryDate, income);
+                doc = new GovernmentDocument.IncomeCertificate(docId, docRaw, LocalDate.now(), defaultExpiry, income);
             } else {
-                doc = new GovernmentDocument.IdentificationDocument(docId, docRaw, LocalDate.now(), expiryDate);
+                doc = new GovernmentDocument.IdentificationDocument(docId, docRaw, LocalDate.now(), defaultExpiry);
             }
 
             String appId = "APP-" + (ScholarshipManager.applicationList.size() + 101);

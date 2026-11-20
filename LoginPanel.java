@@ -25,20 +25,15 @@ public class LoginPanel {
         JPanel topRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 13));
         topRight.setOpaque(false);
 
-        JButton topRoleBtn = new JButton("Roles");
-        JButton topSignUpBtn = new JButton("Sign Up");
         JButton topExitBtn = new JButton("Exit");
-
-        for (JButton b : new JButton[]{topRoleBtn, topSignUpBtn, topExitBtn}) {
-            b.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            b.setForeground(Color.WHITE);
-            b.setBackground(AutomatedApplication.PRIMARY_DARK);
-            b.setBorderPainted(false);
-            b.setFocusPainted(false);
-            b.setContentAreaFilled(false);
-            b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            topRight.add(b);
-        }
+        topExitBtn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        topExitBtn.setForeground(Color.WHITE);
+        topExitBtn.setBackground(AutomatedApplication.PRIMARY_DARK);
+        topExitBtn.setBorderPainted(false);
+        topExitBtn.setFocusPainted(false);
+        topExitBtn.setContentAreaFilled(false);
+        topExitBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        topRight.add(topExitBtn);
 
         topBar.add(brandLbl, BorderLayout.WEST);
         topBar.add(topRight, BorderLayout.EAST);
@@ -112,6 +107,30 @@ public class LoginPanel {
         JPasswordField passField = new JPasswordField();
         passField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         passField.setPreferredSize(new Dimension(0, 34));
+        char defaultEchoChar = passField.getEchoChar();
+
+        JButton togglePassBtn = new JButton("Show");
+        togglePassBtn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        togglePassBtn.setPreferredSize(new Dimension(62, 34));
+        togglePassBtn.setFocusPainted(false);
+        togglePassBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        togglePassBtn.setBackground(new Color(238, 242, 255));
+        togglePassBtn.setForeground(AutomatedApplication.PRIMARY_ACCENT);
+        togglePassBtn.setBorder(BorderFactory.createLineBorder(new Color(199, 210, 254), 1, true));
+        togglePassBtn.addActionListener(e -> {
+            if (passField.getEchoChar() == (char) 0) {
+                passField.setEchoChar(defaultEchoChar);
+                togglePassBtn.setText("Show");
+            } else {
+                passField.setEchoChar((char) 0);
+                togglePassBtn.setText("Hide");
+            }
+        });
+
+        JPanel passPanel = new JPanel(new BorderLayout(6, 0));
+        passPanel.setOpaque(false);
+        passPanel.add(passField, BorderLayout.CENTER);
+        passPanel.add(togglePassBtn, BorderLayout.EAST);
 
         JButton loginBtn = AutomatedApplication.createRoundedButton(
             "Continue to Portal", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 10
@@ -125,7 +144,7 @@ public class LoginPanel {
         gbc.gridy = r++; signInCard.add(new JLabel("Username"), gbc);
         gbc.gridy = r++; signInCard.add(userField, gbc);
         gbc.gridy = r++; signInCard.add(new JLabel("Password"), gbc);
-        gbc.gridy = r++; signInCard.add(passField, gbc);
+        gbc.gridy = r++; signInCard.add(passPanel, gbc);
         gbc.gridy = r++; gbc.insets = new Insets(12, 0, 0, 0); signInCard.add(loginBtn, gbc);
 
         heroRow.add(heroBanner);
@@ -178,8 +197,6 @@ public class LoginPanel {
         });
 
         heroCtaBtn.addActionListener(e -> openApplicantSignUpDialog(frame));
-        topSignUpBtn.addActionListener(e -> openApplicantSignUpDialog(frame));
-        topRoleBtn.addActionListener(e -> roleCombo.requestFocus());
         topExitBtn.addActionListener(e -> {
             ScholarshipManager.saveAllData();
             System.exit(0);
