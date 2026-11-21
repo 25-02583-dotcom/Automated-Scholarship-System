@@ -109,9 +109,9 @@ public class LoginPanel {
         passField.setPreferredSize(new Dimension(0, 34));
         char defaultEchoChar = passField.getEchoChar();
 
-        JButton togglePassBtn = new JButton("SHOW");
+        JButton togglePassBtn = new JButton("Show");
         togglePassBtn.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        togglePassBtn.setPreferredSize(new Dimension(64, 34));
+        togglePassBtn.setPreferredSize(new Dimension(62, 34));
         togglePassBtn.setFocusPainted(false);
         togglePassBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         togglePassBtn.setBackground(new Color(238, 242, 255));
@@ -120,10 +120,10 @@ public class LoginPanel {
         togglePassBtn.addActionListener(e -> {
             if (passField.getEchoChar() == (char) 0) {
                 passField.setEchoChar(defaultEchoChar);
-                togglePassBtn.setText("SHOW");
+                togglePassBtn.setText("Show");
             } else {
                 passField.setEchoChar((char) 0);
-                togglePassBtn.setText("HIDE");
+                togglePassBtn.setText("Hide");
             }
         });
 
@@ -228,8 +228,8 @@ public class LoginPanel {
         JTextField txtAddress = new JTextField();
         JTextField txtUsername = new JTextField();
 
-        // unique password field with SHOW / HIDE toggle
-        String placeholder = "Min. 8 chars, 1 uppercase, 1 number, 1 special (unique)";
+        // new for unique password validation
+        String placeholder = "Min. 8 chars, 1 uppercase, 1 number, 1 special";
         JPasswordField txtPassword = new JPasswordField(placeholder) {
             @Override
             public char[] getPassword() {
@@ -241,11 +241,11 @@ public class LoginPanel {
         txtPassword.setForeground(Color.GRAY);
         txtPassword.setPreferredSize(new Dimension(0, 32));
         char defaultEcho = txtPassword.getEchoChar();
-        txtPassword.setEchoChar((char) 0);
+        txtPassword.setEchoChar((char) 0); // Para mabasa ang placeholder sa simula
 
-        JButton toggleRegPassBtn = new JButton("SHOW");
+        JButton toggleRegPassBtn = new JButton("Show");
         toggleRegPassBtn.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        toggleRegPassBtn.setPreferredSize(new Dimension(64, 32));
+        toggleRegPassBtn.setPreferredSize(new Dimension(62, 32));
         toggleRegPassBtn.setFocusPainted(false);
         toggleRegPassBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         toggleRegPassBtn.setBackground(new Color(238, 242, 255));
@@ -259,7 +259,7 @@ public class LoginPanel {
                     txtPassword.setText("");
                     txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
                     txtPassword.setForeground(Color.BLACK);
-                    if ("SHOW".equals(toggleRegPassBtn.getText())) {
+                    if ("Show".equals(toggleRegPassBtn.getText())) {
                         txtPassword.setEchoChar(defaultEcho);
                     }
                 }
@@ -278,14 +278,14 @@ public class LoginPanel {
 
         toggleRegPassBtn.addActionListener(e -> {
             boolean isPlaceholder = new String(txtPassword.getPassword()).isEmpty() && txtPassword.getForeground() == Color.GRAY;
-            if ("SHOW".equals(toggleRegPassBtn.getText())) {
+            if ("Show".equals(toggleRegPassBtn.getText())) {
                 txtPassword.setEchoChar((char) 0);
-                toggleRegPassBtn.setText("HIDE");
+                toggleRegPassBtn.setText("Hide");
             } else {
                 if (!isPlaceholder) {
                     txtPassword.setEchoChar(defaultEcho);
                 }
-                toggleRegPassBtn.setText("SHOW");
+                toggleRegPassBtn.setText("Show");
             }
         });
 
@@ -352,16 +352,6 @@ public class LoginPanel {
                 return;
             }
 
-            if (isPasswordAlreadyUsed(password)) {
-                JOptionPane.showMessageDialog(
-                    dialog,
-                    "Password is already used by another account. Please enter a unique password.",
-                    "Duplicate Password",
-                    JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
-
             for (Applicant acc : ScholarshipManager.applicantList) {
                 if (acc.getUsername().equalsIgnoreCase(username)) {
                     JOptionPane.showMessageDialog(dialog, "Username already taken.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -376,18 +366,6 @@ public class LoginPanel {
         });
 
         dialog.setVisible(true);
-    }
-
-    private static boolean isPasswordAlreadyUsed(String password) {
-        if (password.equals(ScholarshipManager.ADMIN_PASSWORD)) {
-            return true;
-        }
-        for (Applicant acc : ScholarshipManager.applicantList) {
-            if (acc.getPassword() != null && acc.getPassword().equals(password)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static boolean isValidPassword(String password) {
