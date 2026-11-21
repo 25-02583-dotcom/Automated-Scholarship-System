@@ -39,7 +39,7 @@ public class LoginPanel {
         topBar.add(topRight, BorderLayout.EAST);
         frame.add(topBar, BorderLayout.NORTH);
 
-        // Main Non-Scrollable Content (Hero + Login only)
+        // Main Non-Scrollable Content
         JPanel centerWrapper = new JPanel(new GridBagLayout());
         centerWrapper.setBackground(AutomatedApplication.BG_SOFT);
         centerWrapper.setBorder(new EmptyBorder(24, 28, 24, 28));
