@@ -56,6 +56,10 @@ public class ScholarshipApplication implements Serializable {
         this.status = newStatus;
     }
 
+    public void setStatus(String status) {
+        updateStatus(status);
+    }
+
     public String displayApplication() {
         return String.format(
             "App ID: %s | Applicant: %s (%s) | Program: %s | GWA: %.2f | Income: P%.2f | Status: %s",

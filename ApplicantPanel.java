@@ -1,11 +1,55 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ApplicantPanel {
+    public static final Map<String, String> uploadedFilePathsByAppId = new HashMap<>();
+
+    private static List<String[]> getAllScholarshipPrograms() {
+        List<String[]> all = new ArrayList<>();
+        all.add(new String[]{
+            "DOST Scholarship (Department of Science and Technology)",
+            "STEM / IT track & DOST-SEI qualifying exam",
+            "Tuition, living & book allowance"
+        });
+        all.add(new String[]{
+            "Academic Scholarship",
+            "Max GWA of " + ScholarshipManager.MAXIMUM_GWA + " or better",
+            "Tuition coverage & academic grant"
+        });
+        all.add(new String[]{
+            "Financial Assistance Scholarship",
+            "Annual Income <= P" + String.format("%.2f", ScholarshipManager.MAXIMUM_ANNUAL_INCOME),
+            "Financial stipend & fee subsidy"
+        });
+        all.add(new String[]{
+            "Government Scholarship",
+            "Valid documents & active enrollment",
+            "Semesterly educational grant"
+        });
+        all.add(new String[]{
+            "Science and Technology (S&T) Scholarship",
+            "GWA of " + ScholarshipManager.MAXIMUM_GWA + " or better & complete docs",
+            "Monthly allowance & study grant"
+        });
+        all.add(new String[]{
+            "Cultural and Arts Achievement Grant",
+            "Campus group endorsement & good standing",
+            "Tuition fee discount"
+        });
+        all.addAll(AdminPanel.customPrograms);
+        return all;
+    }
+
     public static void createAndShowApplicantDashboard(Applicant currentUser) {
         JFrame frame = new JFrame("Applicant Portal - " + currentUser.getName());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -195,38 +239,7 @@ public class ApplicantPanel {
         dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
         dialog.setLayout(new BorderLayout(10, 10));
 
-        String[][] programs = {
-            {
-                "DOST Scholarship (Department of Science and Technology)",
-                "STEM / IT track & DOST-SEI qualifying exam",
-                "Tuition, living & book allowance"
-            },
-            {
-                "Academic Scholarship",
-                "Max GWA of " + ScholarshipManager.MAXIMUM_GWA + " or better",
-                "Tuition coverage & academic grant"
-            },
-            {
-                "Financial Assistance Scholarship",
-                "Annual Income <= P" + String.format("%.2f", ScholarshipManager.MAXIMUM_ANNUAL_INCOME),
-                "Financial stipend & fee subsidy"
-            },
-            {
-                "Government Scholarship",
-                "Valid documents & active enrollment",
-                "Semesterly educational grant"
-            },
-            {
-                "Science and Technology (S&T) Scholarship",
-                "GWA of " + ScholarshipManager.MAXIMUM_GWA + " or better & complete docs",
-                "Monthly allowance & study grant"
-            },
-            {
-                "Cultural and Arts Achievement Grant",
-                "Campus group endorsement & good standing",
-                "Tuition fee discount"
-            }
-        };
+        List<String[]> programs = getAllScholarshipPrograms();
 
         JPanel topCard = AutomatedApplication.createRoundedPanel(
             Color.WHITE, new Color(199, 210, 254), 14
@@ -391,14 +404,13 @@ public class ApplicantPanel {
         txtName.setEditable(false);
         txtName.setPreferredSize(new Dimension(0, 32));
 
-        JComboBox<String> cmbProgram = new JComboBox<>(new String[]{
-            "DOST Scholarship (Department of Science and Technology)",
-            "Academic Scholarship",
-            "Financial Assistance Scholarship",
-            "Government Scholarship",
-            "Science and Technology (S&T) Scholarship",
-            "Cultural and Arts Achievement Grant"
-        });
+        List<String[]> allPrograms = getAllScholarshipPrograms();
+        String[] programNames = new String[allPrograms.size()];
+        for (int i = 0; i < allPrograms.size(); i++) {
+            programNames[i] = allPrograms.get(i)[0];
+        }
+
+        JComboBox<String> cmbProgram = new JComboBox<>(programNames);
         cmbProgram.setPreferredSize(new Dimension(0, 32));
         if (preselectedProgram != null) {
             cmbProgram.setSelectedItem(preselectedProgram);
@@ -420,6 +432,8 @@ public class ApplicantPanel {
         JTextField txtDocName = new JTextField();
         txtDocName.setEditable(false);
         txtDocName.setPreferredSize(new Dimension(0, 32));
+
+        final String[] selectedFilePath = {""};
 
         JButton browseBtn = AutomatedApplication.createRoundedButton(
             "Upload File", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 8
@@ -490,7 +504,9 @@ public class ApplicantPanel {
             chooser.setDialogTitle("Select Document File");
             int result = chooser.showOpenDialog(dialog);
             if (result == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
-                txtDocName.setText(chooser.getSelectedFile().getName());
+                File chosen = chooser.getSelectedFile();
+                txtDocName.setText(chosen.getName());
+                selectedFilePath[0] = chosen.getAbsolutePath();
             }
         });
 
@@ -545,6 +561,10 @@ public class ApplicantPanel {
             }
 
             String appId = "APP-" + (ScholarshipManager.applicationList.size() + 101);
+            if (!selectedFilePath[0].isEmpty()) {
+                uploadedFilePathsByAppId.put(appId, selectedFilePath[0]);
+            }
+
             ScholarshipApplication sa = new ScholarshipApplication(
                 appId, studentId, name, program, gwa, income, doc
             );
@@ -565,6 +585,56 @@ public class ApplicantPanel {
         dialog.setVisible(true);
     }
 
+    private static void openUploadedFile(Component parent, ScholarshipApplication sa) {
+        if (sa == null || sa.getDocument() == null || sa.getDocument().getFileName() == null) {
+            JOptionPane.showMessageDialog(parent, "No uploaded file found.", "File Not Found", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String fileName = sa.getDocument().getFileName();
+        String savedPath = uploadedFilePathsByAppId.get(sa.getApplicationID());
+        File fileToOpen = null;
+
+        if (savedPath != null && !savedPath.isEmpty()) {
+            File candidate = new File(savedPath);
+            if (candidate.exists()) {
+                fileToOpen = candidate;
+            }
+        }
+
+        if (fileToOpen == null) {
+            File localCandidate = new File(fileName);
+            if (localCandidate.exists()) {
+                fileToOpen = localCandidate;
+            }
+        }
+
+        if (fileToOpen == null) {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Locate Uploaded File: " + fileName);
+            int res = chooser.showOpenDialog(parent);
+            if (res == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
+                fileToOpen = chooser.getSelectedFile();
+                uploadedFilePathsByAppId.put(sa.getApplicationID(), fileToOpen.getAbsolutePath());
+            }
+        }
+
+        if (fileToOpen == null || !fileToOpen.exists()) {
+            JOptionPane.showMessageDialog(parent, "Unable to locate file: " + fileName, "File Not Found", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(fileToOpen);
+            } else {
+                JOptionPane.showMessageDialog(parent, "Desktop file opening is not supported on this device.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Could not open file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     public static void openViewStatusDialog(JFrame parent, Applicant currentUser) {
         ScholarshipApplication sa = ScholarshipManager.findApplicationByApplicantID(currentUser.getApplicantID());
         if (sa == null) {
@@ -575,23 +645,64 @@ public class ApplicantPanel {
         Disbursement disb = ScholarshipManager.findDisbursementByApplicationID(sa.getApplicationID());
         String disbStatus = (disb != null) ? disb.getPaymentStatus() : "Not Yet Approved";
         String disbAmount = (disb != null) ? String.format("P%.2f", disb.getAmount()) : "N/A";
+        String uploadedFile = (sa.getDocument() != null && sa.getDocument().getFileName() != null)
+            ? sa.getDocument().getFileName()
+            : "None";
 
-        String details = String.format(
-            "<html><div style='font-family: Segoe UI; padding: 6px;'>" +
-            "<b>Application ID:</b> %s<br>" +
-            "<b>Applicant ID:</b> %s<br>" +
-            "<b>Name:</b> %s<br>" +
-            "<b>Program:</b> %s<br>" +
-            "<b>GWA:</b> %.2f<br>" +
-            "<b>Annual Income:</b> P%.2f<br>" +
-            "<b>Document:</b> %s (%s)<br>" +
-            "<b>Application Status:</b> <font color='#4338ca'>%s</font><br>" +
-            "<b>Disbursement Status:</b> <font color='#15803d'>%s (%s)</font></div></html>",
-            sa.getApplicationID(), sa.getApplicantID(), sa.getApplicantName(), sa.getScholarshipType(),
-            sa.getGwa(), sa.getAnnualIncome(), sa.getDocument().getFileName(),
-            sa.getDocument().getVerificationStatus(), sa.getStatus(), disbStatus, disbAmount
+        JDialog dialog = new JDialog(parent, "My Application Status", true);
+        dialog.setSize(960, 320);
+        dialog.setLocationRelativeTo(parent);
+        dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
+        dialog.setLayout(new BorderLayout(10, 10));
+
+        String[] cols = {
+            "App ID", "Program", "GWA", "Annual Income",
+            "Uploaded File", "App Status", "Disbursement"
+        };
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        model.addRow(new Object[]{
+            sa.getApplicationID(),
+            sa.getScholarshipType(),
+            String.format("%.2f", sa.getGwa()),
+            String.format("P%.2f", sa.getAnnualIncome()),
+            uploadedFile,
+            sa.getStatus(),
+            disbStatus + " (" + disbAmount + ")"
+        });
+
+        JTable table = new JTable(model);
+        table.setRowHeight(28);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        JButton openFileBtn = AutomatedApplication.createActionButton(
+            "Open File", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 120, 34
         );
+        openFileBtn.addActionListener(e -> openUploadedFile(dialog, sa));
 
-        JOptionPane.showMessageDialog(parent, new JLabel(details), "Application Status", JOptionPane.INFORMATION_MESSAGE);
+        JButton closeBtn = AutomatedApplication.createActionButton(
+            "Close Window", AutomatedApplication.PRIMARY_DARK, Color.WHITE, 130, 34
+        );
+        closeBtn.addActionListener(e -> dialog.dispose());
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(openFileBtn);
+        bottomPanel.add(closeBtn);
+
+        JPanel body = new JPanel(new BorderLayout(10, 10));
+        body.setOpaque(false);
+        body.setBorder(new EmptyBorder(14, 14, 14, 14));
+        body.add(new JScrollPane(table), BorderLayout.CENTER);
+        body.add(bottomPanel, BorderLayout.SOUTH);
+
+        dialog.add(body, BorderLayout.CENTER);
+        dialog.setVisible(true);
     }
 }
