@@ -204,10 +204,10 @@ public class LoginPanel {
 
         frame.setVisible(true);
     }
-
+// sign-up
     public static void openApplicantSignUpDialog(JFrame parent) {
         JDialog dialog = new JDialog(parent, "Applicant Registration", true);
-        dialog.setSize(430, 440);
+        dialog.setSize(450, 500);
         dialog.setLocationRelativeTo(parent);
         dialog.setLayout(new GridBagLayout());
         dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
@@ -226,7 +226,72 @@ public class LoginPanel {
         JTextField txtContact = new JTextField();
         JTextField txtAddress = new JTextField();
         JTextField txtUsername = new JTextField();
-        JPasswordField txtPassword = new JPasswordField();
+// new for unique password validation
+        String placeholder = "Min. 8 chars, 1 uppercase, 1 number, 1 special";
+        JPasswordField txtPassword = new JPasswordField(placeholder) {
+            @Override
+            public char[] getPassword() {
+                String text = new String(super.getPassword());
+                return text.equals(placeholder) ? new char[0] : super.getPassword();
+            }
+        };
+        txtPassword.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        txtPassword.setForeground(Color.GRAY);
+        txtPassword.setPreferredSize(new Dimension(0, 32));
+        char defaultEcho = txtPassword.getEchoChar();
+        txtPassword.setEchoChar((char) 0); // Para mabasa ang placeholder sa simula
+
+        JButton toggleRegPassBtn = new JButton("Show");
+        toggleRegPassBtn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        toggleRegPassBtn.setPreferredSize(new Dimension(62, 32));
+        toggleRegPassBtn.setFocusPainted(false);
+        toggleRegPassBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        toggleRegPassBtn.setBackground(new Color(238, 242, 255));
+        toggleRegPassBtn.setForeground(AutomatedApplication.PRIMARY_ACCENT);
+        toggleRegPassBtn.setBorder(BorderFactory.createLineBorder(new Color(199, 210, 254), 1, true));
+
+        txtPassword.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (new String(txtPassword.getPassword()).isEmpty()) {
+                    txtPassword.setText("");
+                    txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                    txtPassword.setForeground(Color.BLACK);
+                    if ("Show".equals(toggleRegPassBtn.getText())) {
+                        txtPassword.setEchoChar(defaultEcho);
+                    }
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (new String(txtPassword.getPassword()).isEmpty()) {
+                    txtPassword.setEchoChar((char) 0);
+                    txtPassword.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+                    txtPassword.setForeground(Color.GRAY);
+                    txtPassword.setText(placeholder);
+                }
+            }
+        });
+
+        toggleRegPassBtn.addActionListener(e -> {
+            boolean isPlaceholder = new String(txtPassword.getPassword()).isEmpty() && txtPassword.getForeground() == Color.GRAY;
+            if ("Show".equals(toggleRegPassBtn.getText())) {
+                txtPassword.setEchoChar((char) 0);
+                toggleRegPassBtn.setText("Hide");
+            } else {
+                if (!isPlaceholder) {
+                    txtPassword.setEchoChar(defaultEcho);
+                }
+                toggleRegPassBtn.setText("Show");
+            }
+        });
+
+        JPanel regPassPanel = new JPanel(new BorderLayout(6, 0));
+        regPassPanel.setOpaque(false);
+        regPassPanel.add(txtPassword, BorderLayout.CENTER);
+        regPassPanel.add(toggleRegPassBtn, BorderLayout.EAST);
+
         JButton registerBtn = AutomatedApplication.createRoundedButton(
             "Register Applicant", AutomatedApplication.BTN_GREEN, Color.WHITE, 10
         );
@@ -249,7 +314,7 @@ public class LoginPanel {
         gbc.gridy = row++; card.add(txtUsername, gbc);
 
         gbc.gridy = row++; card.add(new JLabel("Password:"), gbc);
-        gbc.gridy = row++; card.add(txtPassword, gbc);
+        gbc.gridy = row++; card.add(regPassPanel, gbc);
 
         gbc.gridy = row++; gbc.insets = new Insets(10, 0, 0, 0);
         card.add(registerBtn, gbc);
@@ -274,6 +339,16 @@ public class LoginPanel {
                 JOptionPane.showMessageDialog(dialog, "All fields are required.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            
+            if (!isValidPassword(password)) {
+                JOptionPane.showMessageDialog(
+                    dialog,
+                    "Password must be at least 8 characters long and contain at least 1 uppercase letter, 1 number, and 1 special character.",
+                    "Invalid Password",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
 
             for (Applicant acc : ScholarshipManager.applicantList) {
                 if (acc.getUsername().equalsIgnoreCase(username)) {
@@ -289,5 +364,26 @@ public class LoginPanel {
         });
 
         dialog.setVisible(true);
+    }
+
+    private static boolean isValidPassword(String password) {
+        if (password.length() < 8) {
+            return false;
+        }
+
+        boolean hasUppercase = false;
+        boolean hasNumber = false;
+        boolean hasSpecial = false;
+
+        for (char c : password.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                hasUppercase = true;
+            } else if (Character.isDigit(c)) {
+                hasNumber = true;
+            } else if (!Character.isLetterOrDigit(c) && !Character.isWhitespace(c)) {
+                hasSpecial = true;
+            }
+        }
+        return hasUppercase && hasNumber && hasSpecial;
     }
 }
