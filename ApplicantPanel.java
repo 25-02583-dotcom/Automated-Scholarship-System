@@ -4,8 +4,12 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,8 +17,99 @@ import java.util.Map;
 
 public class ApplicantPanel {
     public static final Map<String, String> uploadedFilePathsByAppId = new HashMap<>();
+    private static final String NOTICES_FILE = "disbursement_notices.txt";
+
+    public static void appendDisbursementNotice(String applicantId, String subject, String message) {
+        if (applicantId == null || applicantId.trim().isEmpty()) {
+            return;
+        }
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        String cleanSubject = subject.replace("|", "/").replace("\n", " ").trim();
+        String cleanMessage = message.replace("|", "/").replace("\n", " ").trim();
+        String line = applicantId.trim() + "|" + timestamp + "|" + cleanSubject + "|" + cleanMessage;
+
+        List<String> existing = loadRawNoticeLines();
+        if (!existing.isEmpty()) {
+            String last = existing.get(existing.size() - 1);
+            String[] parts = last.split("\\|", 4);
+            if (parts.length == 4 && parts[0].equals(applicantId.trim())
+                    && parts[2].equals(cleanSubject) && parts[3].equals(cleanMessage)) {
+                return;
+            }
+        }
+
+        try (BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(NOTICES_FILE, true), StandardCharsets.UTF_8))) {
+            bw.write(line);
+            bw.newLine();
+        } catch (IOException ignored) {
+        }
+    }
+
+    private static List<String> loadRawNoticeLines() {
+        List<String> lines = new ArrayList<>();
+        File file = new File(NOTICES_FILE);
+        if (!file.exists()) {
+            return lines;
+        }
+        try {
+            lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        } catch (IOException ignored) {
+        }
+        return lines;
+    }
+
+    private static List<String[]> getNoticesForApplicant(String applicantId) {
+        List<String[]> result = new ArrayList<>();
+        for (String line : loadRawNoticeLines()) {
+            String[] parts = line.split("\\|", 4);
+            if (parts.length == 4 && parts[0].equals(applicantId)) {
+                result.add(new String[]{parts[1], parts[2], parts[3]});
+            }
+        }
+        return result;
+    }
+
+    private static void syncCurrentStatusToInbox(Applicant currentUser) {
+        ScholarshipApplication sa = ScholarshipManager.findApplicationByApplicantID(currentUser.getApplicantID());
+        if (sa == null) {
+            return;
+        }
+        Disbursement disb = ScholarshipManager.findDisbursementByApplicationID(sa.getApplicationID());
+        String appStat = (sa.getStatus() != null) ? sa.getStatus() : "Pending";
+
+        if (disb != null && "Released".equalsIgnoreCase(disb.getPaymentStatus())) {
+            appendDisbursementNotice(
+                currentUser.getApplicantID(),
+                "Cash Grant Released: " + String.format("P%.2f", disb.getAmount()),
+                String.format(
+                    "Your grant of P%.2f has been released (Disbursement ID: %s, App ID: %s, Date: %s).",
+                    disb.getAmount(), disb.getDisbursementID(), sa.getApplicationID(), disb.getDate()
+                )
+            );
+        } else if (disb != null) {
+            appendDisbursementNotice(
+                currentUser.getApplicantID(),
+                "Cash Grant Update (" + disb.getPaymentStatus() + "): " + String.format("P%.2f", disb.getAmount()),
+                String.format(
+                    "Your cash grant of P%.2f (Disbursement ID: %s, App ID: %s) is currently %s | Application Status: %s.",
+                    disb.getAmount(), disb.getDisbursementID(), sa.getApplicationID(), disb.getPaymentStatus(), appStat
+                )
+            );
+        } else {
+            appendDisbursementNotice(
+                currentUser.getApplicantID(),
+                "Application Status: " + appStat,
+                String.format(
+                    "App ID: %s (%s) — Application Status: %s | Disbursement Status: Pending",
+                    sa.getApplicationID(), sa.getScholarshipType(), appStat
+                )
+            );
+        }
+    }
 
     private static List<String[]> getAllScholarshipPrograms() {
+        AdminPanel.loadCustomProgramsFromFile();
         List<String[]> all = new ArrayList<>();
         all.add(new String[]{
             "DOST Scholarship (Department of Science and Technology)",
@@ -51,6 +146,9 @@ public class ApplicantPanel {
     }
 
     public static void createAndShowApplicantDashboard(Applicant currentUser) {
+        syncCurrentStatusToInbox(currentUser);
+        List<String[]> notices = getNoticesForApplicant(currentUser.getApplicantID());
+
         JFrame frame = new JFrame("Applicant Portal - " + currentUser.getName());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -108,11 +206,16 @@ public class ApplicantPanel {
         secTitle.setForeground(AutomatedApplication.TEXT_DARK);
         secTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel cardsRow = new JPanel(new GridLayout(1, 2, 20, 0));
+        String grantBadge = notices.isEmpty() ? "GRANT INBOX" : "GRANT INBOX (" + notices.size() + ")";
+        String grantDesc = notices.isEmpty()
+            ? "View your saved email-style disbursement notices, cash grant amount, and status updates."
+            : "Latest Notice: " + notices.get(notices.size() - 1)[2];
+
+        JPanel cardsRow = new JPanel(new GridLayout(1, 3, 20, 0));
         cardsRow.setOpaque(false);
         cardsRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cardsRow.setPreferredSize(new Dimension(0, 205));
-        cardsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 215));
+        cardsRow.setPreferredSize(new Dimension(0, 210));
+        cardsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220));
 
         cardsRow.add(createActionCard(
             "PROGRAMS",
@@ -134,6 +237,17 @@ public class ApplicantPanel {
             "Check Status  ->",
             new Color(21, 128, 61),
             e -> openViewStatusDialog(frame, currentUser)
+        ));
+
+        cardsRow.add(createActionCard(
+            grantBadge,
+            new Color(254, 243, 199),
+            new Color(180, 83, 9),
+            "Cash Disbursement Grant",
+            grantDesc,
+            "Open Inbox  ->",
+            new Color(180, 83, 9),
+            e -> openCashDisbursementGrantDialog(frame, currentUser)
         ));
 
         body.add(banner);
@@ -173,6 +287,16 @@ public class ApplicantPanel {
         frame.add(footer, BorderLayout.SOUTH);
 
         frame.setVisible(true);
+
+        if (!notices.isEmpty()) {
+            String[] latest = notices.get(notices.size() - 1);
+            JOptionPane.showMessageDialog(
+                frame,
+                "Disbursement Notice (" + latest[0] + ")\n" + latest[1] + "\n" + latest[2],
+                "Disbursement Notice Inbox",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        }
     }
 
     private static JPanel createActionCard(
@@ -230,6 +354,129 @@ public class ApplicantPanel {
         card.add(topText, BorderLayout.CENTER);
         card.add(bottomRow, BorderLayout.SOUTH);
         return card;
+    }
+
+    public static void openCashDisbursementGrantDialog(JFrame parent, Applicant currentUser) {
+        syncCurrentStatusToInbox(currentUser);
+        List<String[]> notices = getNoticesForApplicant(currentUser.getApplicantID());
+
+        ScholarshipApplication sa = ScholarshipManager.findApplicationByApplicantID(currentUser.getApplicantID());
+        Disbursement disb = (sa != null) ? ScholarshipManager.findDisbursementByApplicationID(sa.getApplicationID()) : null;
+
+        JDialog dialog = new JDialog(parent, "Cash Disbursement Grant — Notice Inbox", true);
+        dialog.setSize(860, 480);
+        dialog.setLocationRelativeTo(parent);
+        dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
+        dialog.setLayout(new BorderLayout(10, 10));
+
+        JPanel summaryCard = AutomatedApplication.createRoundedPanel(Color.WHITE, new Color(199, 210, 254), 14);
+        summaryCard.setLayout(new BoxLayout(summaryCard, BoxLayout.Y_AXIS));
+        summaryCard.setBorder(new EmptyBorder(14, 18, 14, 18));
+
+        JLabel titleLbl = new JLabel("Cash Disbursement Grant & Saved Notices");
+        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        titleLbl.setForeground(AutomatedApplication.PRIMARY_DARK);
+
+        String programText = (sa != null) ? sa.getScholarshipType() : "No application submitted yet";
+        String appStatusText = (sa != null && sa.getStatus() != null) ? sa.getStatus() : "N/A";
+        String disbIdText = (disb != null) ? disb.getDisbursementID() : "N/A";
+        String grantAmountText = (disb != null) ? String.format("P%.2f", disb.getAmount()) : "P0.00";
+        String grantStatusText = (disb != null) ? disb.getPaymentStatus() : "Pending";
+        String grantDateText = (disb != null && disb.getDate() != null) ? disb.getDate().toString() : "N/A";
+
+        String headlineNotice = (disb != null && "Released".equalsIgnoreCase(grantStatusText))
+            ? "Your grant of " + grantAmountText + " has been released."
+            : "Program: " + programText + "  |  App Status: " + appStatusText + "  |  Cash Grant: " + grantAmountText + " (" + grantStatusText + ")";
+
+        JLabel lblSummary = new JLabel(headlineNotice);
+        lblSummary.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblSummary.setForeground(AutomatedApplication.PRIMARY_ACCENT);
+
+        JLabel lblMeta = new JLabel(
+            "Program: " + programText + "  |  App Status: " + appStatusText +
+            "  |  Disbursement ID: " + disbIdText + "  |  Amount: " + grantAmountText +
+            "  |  Disbursement: " + grantStatusText + " (" + grantDateText + ")"
+        );
+        lblMeta.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblMeta.setForeground(AutomatedApplication.TEXT_DARK);
+
+        summaryCard.add(titleLbl);
+        summaryCard.add(Box.createRigidArea(new Dimension(0, 6)));
+        summaryCard.add(lblSummary);
+        summaryCard.add(Box.createRigidArea(new Dimension(0, 4)));
+        summaryCard.add(lblMeta);
+
+        String[] cols = {"Date & Time", "Subject", "Notice Details"};
+        DefaultTableModel inboxModel = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        for (int i = notices.size() - 1; i >= 0; i--) {
+            String[] n = notices.get(i);
+            inboxModel.addRow(new Object[]{n[0], n[1], n[2]});
+        }
+
+        JTable inboxTable = new JTable(inboxModel);
+        inboxTable.setRowHeight(28);
+        inboxTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inboxTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        inboxTable.getColumnModel().getColumn(0).setPreferredWidth(130);
+        inboxTable.getColumnModel().getColumn(1).setPreferredWidth(230);
+        inboxTable.getColumnModel().getColumn(2).setPreferredWidth(450);
+
+        JTextArea messagePreview = new JTextArea(4, 40);
+        messagePreview.setEditable(false);
+        messagePreview.setLineWrap(true);
+        messagePreview.setWrapStyleWord(true);
+        messagePreview.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        messagePreview.setBorder(new EmptyBorder(8, 10, 8, 10));
+        if (!notices.isEmpty()) {
+            String[] latest = notices.get(notices.size() - 1);
+            messagePreview.setText("Date: " + latest[0] + "\nSubject: " + latest[1] + "\n\n" + latest[2]);
+            inboxTable.setRowSelectionInterval(0, 0);
+        } else {
+            messagePreview.setText("No saved notices in your inbox yet.");
+        }
+
+        inboxTable.getSelectionModel().addListSelectionListener(e -> {
+            int row = inboxTable.getSelectedRow();
+            if (row >= 0) {
+                String dt = String.valueOf(inboxModel.getValueAt(row, 0));
+                String subj = String.valueOf(inboxModel.getValueAt(row, 1));
+                String det = String.valueOf(inboxModel.getValueAt(row, 2));
+                messagePreview.setText("Date: " + dt + "\nSubject: " + subj + "\n\n" + det);
+            }
+        });
+
+        JSplitPane splitPane = new JSplitPane(
+            JSplitPane.VERTICAL_SPLIT,
+            new JScrollPane(inboxTable),
+            new JScrollPane(messagePreview)
+        );
+        splitPane.setResizeWeight(0.6);
+        splitPane.setBorder(null);
+
+        JButton closeBtn = AutomatedApplication.createActionButton(
+            "Close Window", AutomatedApplication.PRIMARY_DARK, Color.WHITE, 130, 34
+        );
+        closeBtn.addActionListener(e -> dialog.dispose());
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(closeBtn);
+
+        JPanel body = new JPanel(new BorderLayout(10, 10));
+        body.setOpaque(false);
+        body.setBorder(new EmptyBorder(14, 14, 14, 14));
+        body.add(summaryCard, BorderLayout.NORTH);
+        body.add(splitPane, BorderLayout.CENTER);
+        body.add(bottomPanel, BorderLayout.SOUTH);
+
+        dialog.add(body, BorderLayout.CENTER);
+        dialog.setVisible(true);
     }
 
     public static void openScholarshipProgramsDialog(JFrame parent, Applicant currentUser) {
@@ -573,6 +820,12 @@ public class ApplicantPanel {
             ScholarshipManager.applicationList.add(sa);
             ScholarshipManager.saveAllData();
 
+            appendDisbursementNotice(
+                studentId,
+                "Application Submitted: " + sa.getStatus(),
+                "App ID: " + appId + " (" + program + ") submitted. Initial Status: " + sa.getStatus() + " | Disbursement: Pending"
+            );
+
             JOptionPane.showMessageDialog(
                 dialog,
                 "Application processed and saved!\nStatus: " + sa.getStatus(),
@@ -628,7 +881,7 @@ public class ApplicantPanel {
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().open(fileToOpen);
             } else {
-                JOptionPane.showMessageDialog(parent, "Desktop file opening is not supported on this device.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(parent, "Desktop file opening is not supported on this system.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(parent, "Could not open file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
