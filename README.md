@@ -1,13 +1,9 @@
 # Automated Scholarship Application, Document Validation, and Disbursement Monitoring System
 
-**Course:** OOP101 – Object-Oriented Programming (AY 2026–2027)  
-**Section:** IT-2112 | **Team:** J³ (J Cubed) – Group 1  
-**Instructor:** Mr. Juriel U. Comia  
-
 ---
 
 ## 1. Project Description
-The **Automated Scholarship Application, Document Validation, and Disbursement Monitoring System** is a structured Java-based desktop application designed to streamline scholarship application processing, automate requirement validation against predefined eligibility criteria, and maintain systematic logs of stipend disbursements.
+The proposed **Automated Scholarship Application, Document Validation, and Disbursement Monitoring System** streamlines the application process through a structured Java-based application. It automates requirement validation against predefined criteria and maintains systematic disbursement logs to ensure accurate, transparent, and prompt distribution of educational assistance. 
 
 ---
 
@@ -22,15 +18,15 @@ Manual processing of scholarship applications is labor-intensive and prone to hu
 
 ## 3. Project Objectives
 ### General Objective
-To develop a Java-based application that automates scholarship application management, validates submitted supporting documents, and monitors allowance disbursements to maintain transparent and efficient scholarship records.
+To develop a Java-based application that will automates scholarship application management, validates submitted supporting documents, and monitors allowance disbursements to maintain transparent and efficient scholarship records.
 
 ### Specific Objectives
-- Record and organize student applicant profiles and scholarship application details.
-- Build an automated document validation engine that evaluates academic credentials (GWA), income thresholds, and requirement completeness.
-- Implement a smart completeness checker that flags missing or invalid submissions prior to administrator review.
-- Maintain systematic application tracking across all stages (`Pending`, `Auto-Verified`, `Approved`, `Rejected`).
-- Log and track scholarship disbursement details, including payout amounts, dates, and balance statuses.
-- Generate structured summaries and reports for applications, document verification statuses, and financial disbursements.
+The project aims to:
+-	To manage applicant profiles and application lifecycle tracking by recording the student details, the scholarship programs selected and tracking the real time status changes across all stages (Pending, Auto-Verified, Approved, Rejected). 
+-	To build an automated document validation and completeness checker engine which will check the submitted documents, GWA and income thresholds and flag any that are incomplete or invalid before they reach the admin for review. 
+-	To monitor the allowance disbursements by logging the payout details, amounts, transaction dates and balance status for accurate financial tracking. 
+-	To produce structured summaries and reports on student applications, document verification status and the historical disbursement log for admin purposes.
+
 
 ---
 
