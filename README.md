@@ -91,3 +91,26 @@
 
 <img width="702" alt="Admin Dashboard" src="https://raw.githubusercontent.com/Faheemabdullah6522/OOP-Project/main/Window%20Forms/screenshots/Screenshot%202026-06-15%20111851.png">
 
+
+## Known Limitations
+
+- The system operates as a desktop Java application with console- or GUI-based interaction.
+- Data is stored using local data structures and file handling instead of an external database.
+- Document validation requires manually entered information such as GWA and household income.
+- The system does not support automatic document scanning or OCR.
+- Disbursement monitoring only records transactions and does not process actual bank transfers.
+
+## Future Improvements
+
+- Integrate a database for more reliable and organized data storage.
+- Implement OCR technology to automatically extract information from submitted documents.
+- Develop a web-based version for easier access across different devices.
+- Add notification features for application updates and disbursement schedules.
+- Improve reporting features with more detailed summaries and statistics.
+
+
+## Project Contributors
+
+- **John Robert M. Babao** – Team Leader and Programmer
+- **Jelie May M. Driz** – Documentation
+- **Jovelyn Luna** – System Outline
