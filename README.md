@@ -75,8 +75,19 @@
 
 ---
 
-## 9. Instructions for Running the Program
+## Instructions for Running the Program
 1. Ensure **Java Development Kit (JDK)** is installed on your computer.
 2. Clone this repository:
    ```bash
    git clone [https://github.com/](https://github.com/)[username]/[repository-name].git
+
+## Sample Screenshots 🖼
+
+<img width="702" alt="Register" src="https://raw.githubusercontent.com/Faheemabdullah6522/OOP-Project/main/Window%20Forms/screenshots/Screenshot%202026-06-15%20111743.png">
+
+<img width="702" alt="Student Dashboard" src="https://raw.githubusercontent.com/Faheemabdullah6522/OOP-Project/main/Window%20Forms/screenshots/Screenshot%202026-06-15%20111754.png">
+
+<img width="702" alt="Apply Form" src="https://raw.githubusercontent.com/Faheemabdullah6522/OOP-Project/main/Window%20Forms/screenshots/Screenshot%202026-06-15%20111829.png">
+
+<img width="702" alt="Admin Dashboard" src="https://raw.githubusercontent.com/Faheemabdullah6522/OOP-Project/main/Window%20Forms/screenshots/Screenshot%202026-06-15%20111851.png">
+
