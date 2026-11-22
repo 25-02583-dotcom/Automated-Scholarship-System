@@ -105,7 +105,6 @@
 - Integrate a database for more reliable and organized data storage.
 - Implement OCR technology to automatically extract information from submitted documents.
 - Develop a web-based version for easier access across different devices.
-- Add notification features for application updates and disbursement schedules.
 - Improve reporting features with more detailed summaries and statistics.
 
 
