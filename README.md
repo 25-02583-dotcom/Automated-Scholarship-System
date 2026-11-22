@@ -87,7 +87,7 @@
 
 <img width="702" alt="Student Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(147).png">
 
-<img width="702" alt="Apply Form" src="https://raw.githubusercontent.com/Faheemabdullah6522/OOP-Project/main/Window%20Forms/screenshots/Screenshot%202026-06-15%20111829.png">
+<img width="702" alt="Apply Form" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(148).png">
 
 <img width="702" alt="Admin Dashboard" src="https://raw.githubusercontent.com/Faheemabdullah6522/OOP-Project/main/Window%20Forms/screenshots/Screenshot%202026-06-15%20111851.png">
 
