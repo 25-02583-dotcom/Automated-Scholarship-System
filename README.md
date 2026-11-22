@@ -91,6 +91,7 @@
 
 <img width="702" alt="Admin Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(151).png">
 
+<img width="702" alt="Admin Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(152).png">
 
 ## Known Limitations
 
