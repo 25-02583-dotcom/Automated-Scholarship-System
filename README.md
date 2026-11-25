@@ -82,16 +82,99 @@
    git clone [https://github.com/](https://github.com/)[username]/[repository-name].git
 
 ## Sample Screenshots 🖼
+<p align="center">
+   <img width="702" alt="Register" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(145).png">
+   <br>
+  <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
 
-<img width="702" alt="Register" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(145).png">
+<br>
 
-<img width="702" alt="Student Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(147).png">
+<p align="center">
+   <img width="702" alt="Student Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(147).png">
+   <br>
+  <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
 
-<img width="702" alt="Apply Form" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(148).png">
+<br>
 
-<img width="702" alt="Admin Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(151).png">
+<p align="center">
+   <img width="702" alt="Apply Form" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(148).png">
+   <br>
+  <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
 
-<img width="702" alt="Admin Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(152).png">
+<br>
+
+<p align="center">
+   <img width="702" alt="Admin Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(151).png">
+   <br>
+  <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
+
+<br>
+
+<p align="center">
+   <img width="702" alt="Admin Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(152).png">
+   <br>
+  <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
+
+<br>
+
+<p align="center">
+   <img width="702" alt="Register" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(154).png">
+   <br>
+  <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
+
+<br>
+
+
+<h3><strong>Admin</strong></h3>
+
+
+
+<p align="center">
+<img width="702" alt="Student Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(155).png">
+   <br>
+   <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
+
+<br>
+
+<p align="center">
+<img width="702" alt="Apply Form" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(156).png">
+   <br>
+  <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
+
+<br>
+
+<p align="center">
+<img width="702" alt="Admin Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(158).png">
+   <br>
+  <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
+
+<br>
+
+<p align="center">
+<img width="702" alt="Admin Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(161).png">
+   <br>
+  <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
+
+<br>
+
+<p align="center">
+
+<img width="702" alt="Admin Dashboard" src="https://github.com/25-02583-dotcom/Automated-Scholarship-System/blob/main/Screenshot-Sample/Screenshot%20(160).png">
+<br>
+  <em>Ilagay dito ang caption o text sa ilalim ng image</em>
+</p>
+
+<br>
 
 ## Known Limitations
 
