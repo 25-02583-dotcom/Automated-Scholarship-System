@@ -4,10 +4,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+<<<<<<< HEAD
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+=======
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -16,13 +19,17 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+<<<<<<< HEAD
 import java.util.LinkedHashMap;
+=======
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 import java.util.List;
 import java.util.Map;
 
 public class ApplicantPanel {
     public static final Map<String, String> uploadedFilePathsByAppId = new HashMap<>();
     private static final String NOTICES_FILE = "disbursement_notices.txt";
+<<<<<<< HEAD
     private static final String DRAFTS_FILE = "draft_applications.txt";
 
     private static String sanitizeField(String value) {
@@ -194,6 +201,8 @@ public class ApplicantPanel {
         }
         return matches;
     }
+=======
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 
     public static void appendDisbursementNotice(String applicantId, String subject, String message) {
         if (applicantId == null || applicantId.trim().isEmpty()) {
@@ -247,6 +256,7 @@ public class ApplicantPanel {
     }
 
     private static void syncCurrentStatusToInbox(Applicant currentUser) {
+<<<<<<< HEAD
         List<ScholarshipApplication> apps = getApplicationsForApplicant(currentUser.getApplicantID());
         if (apps.isEmpty()) {
             return;
@@ -283,6 +293,42 @@ public class ApplicantPanel {
                     )
                 );
             }
+=======
+        ScholarshipApplication sa = ScholarshipManager.findApplicationByApplicantID(currentUser.getApplicantID());
+        if (sa == null) {
+            return;
+        }
+        Disbursement disb = ScholarshipManager.findDisbursementByApplicationID(sa.getApplicationID());
+        String appStat = (sa.getStatus() != null) ? sa.getStatus() : "Pending";
+
+        if (disb != null && "Released".equalsIgnoreCase(disb.getPaymentStatus())) {
+            appendDisbursementNotice(
+                currentUser.getApplicantID(),
+                "Cash Grant Released: " + String.format("P%.2f", disb.getAmount()),
+                String.format(
+                    "Your grant of P%.2f has been released (Disbursement ID: %s, App ID: %s, Date: %s).",
+                    disb.getAmount(), disb.getDisbursementID(), sa.getApplicationID(), disb.getDate()
+                )
+            );
+        } else if (disb != null) {
+            appendDisbursementNotice(
+                currentUser.getApplicantID(),
+                "Cash Grant Update (" + disb.getPaymentStatus() + "): " + String.format("P%.2f", disb.getAmount()),
+                String.format(
+                    "Your cash grant of P%.2f (Disbursement ID: %s, App ID: %s) is currently %s | Application Status: %s.",
+                    disb.getAmount(), disb.getDisbursementID(), sa.getApplicationID(), disb.getPaymentStatus(), appStat
+                )
+            );
+        } else {
+            appendDisbursementNotice(
+                currentUser.getApplicantID(),
+                "Application Status: " + appStat,
+                String.format(
+                    "App ID: %s (%s) — Application Status: %s | Disbursement Status: Pending",
+                    sa.getApplicationID(), sa.getScholarshipType(), appStat
+                )
+            );
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         }
     }
 
@@ -453,8 +499,11 @@ public class ApplicantPanel {
         logoutBtn.setFocusPainted(false);
         logoutBtn.setBorderPainted(false);
         logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+<<<<<<< HEAD
         AutomatedApplication.applyButtonHover(logoutBtn, AutomatedApplication.BTN_RED,
             new Color(220, 38, 38));
+=======
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         logoutBtn.setPreferredSize(new Dimension(96, 30));
         logoutBtn.addActionListener(e -> {
             ScholarshipManager.saveAllData();
@@ -540,8 +589,12 @@ public class ApplicantPanel {
         syncCurrentStatusToInbox(currentUser);
         List<String[]> notices = getNoticesForApplicant(currentUser.getApplicantID());
 
+<<<<<<< HEAD
         List<ScholarshipApplication> apps = getApplicationsForApplicant(currentUser.getApplicantID());
         ScholarshipApplication sa = apps.isEmpty() ? null : apps.get(apps.size() - 1);
+=======
+        ScholarshipApplication sa = ScholarshipManager.findApplicationByApplicantID(currentUser.getApplicantID());
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         Disbursement disb = (sa != null) ? ScholarshipManager.findDisbursementByApplicationID(sa.getApplicationID()) : null;
 
         JDialog dialog = new JDialog(parent, "Cash Disbursement Grant — Notice Inbox", true);
@@ -811,7 +864,11 @@ public class ApplicantPanel {
 
     public static void openSubmitApplicationDialog(JFrame parent, Applicant currentUser, String preselectedProgram) {
         JDialog dialog = new JDialog(parent, "Submit Application", true);
+<<<<<<< HEAD
         dialog.setSize(700, 400);
+=======
+        dialog.setSize(700, 380);
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         dialog.setLocationRelativeTo(parent);
         dialog.setLayout(new GridBagLayout());
         dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
@@ -840,6 +897,12 @@ public class ApplicantPanel {
 
         JComboBox<String> cmbProgram = new JComboBox<>(programNames);
         cmbProgram.setPreferredSize(new Dimension(0, 32));
+<<<<<<< HEAD
+=======
+        if (preselectedProgram != null) {
+            cmbProgram.setSelectedItem(preselectedProgram);
+        }
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 
         JComboBox<String> cmbDocType = new JComboBox<>(new String[]{
             "Academic Record",
@@ -858,6 +921,7 @@ public class ApplicantPanel {
         txtDocName.setEditable(false);
         txtDocName.setPreferredSize(new Dimension(0, 32));
 
+<<<<<<< HEAD
         final List<String> selectedFilePaths = new ArrayList<>();
         final boolean[] submittedSuccessfully = {false};
         final boolean[] exitHandled = {false};
@@ -962,28 +1026,42 @@ public class ApplicantPanel {
             "Upload Files", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 8
         );
         browseBtn.setPreferredSize(new Dimension(115, 32));
+=======
+        final String[] selectedFilePath = {""};
+
+        JButton browseBtn = AutomatedApplication.createRoundedButton(
+            "Upload File", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 8
+        );
+        browseBtn.setPreferredSize(new Dimension(110, 32));
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 
         JPanel fileUploadPanel = new JPanel(new BorderLayout(6, 0));
         fileUploadPanel.setOpaque(false);
         fileUploadPanel.add(txtDocName, BorderLayout.CENTER);
         fileUploadPanel.add(browseBtn, BorderLayout.EAST);
 
+<<<<<<< HEAD
         JButton saveDraftBtn = AutomatedApplication.createRoundedButton(
             "Save Draft", AutomatedApplication.PRIMARY_DARK, Color.WHITE, 10
         );
         saveDraftBtn.setPreferredSize(new Dimension(0, 40));
         saveDraftBtn.addActionListener(e -> handleIncompleteClose.run());
 
+=======
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         JButton submitBtn = AutomatedApplication.createRoundedButton(
             "Submit Application", AutomatedApplication.BTN_GREEN, Color.WHITE, 10
         );
         submitBtn.setPreferredSize(new Dimension(0, 40));
 
+<<<<<<< HEAD
         JPanel actionBtnsRow = new JPanel(new GridLayout(1, 2, 10, 0));
         actionBtnsRow.setOpaque(false);
         actionBtnsRow.add(saveDraftBtn);
         actionBtnsRow.add(submitBtn);
 
+=======
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         gbc.insets = new Insets(4, 0, 2, 10);
         gbc.gridx = 0; gbc.gridy = 0; card.add(new JLabel("Applicant ID:"), gbc);
         gbc.insets = new Insets(4, 10, 2, 0);
@@ -1016,7 +1094,11 @@ public class ApplicantPanel {
 
         gbc.insets = new Insets(4, 0, 2, 0);
         gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
+<<<<<<< HEAD
         card.add(new JLabel("Upload Documents (any number of files):"), gbc);
+=======
+        card.add(new JLabel("Upload Document (.pdf/.jpg/.png):"), gbc);
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 
         gbc.insets = new Insets(0, 0, 12, 0);
         gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2;
@@ -1024,7 +1106,11 @@ public class ApplicantPanel {
 
         gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2;
         gbc.insets = new Insets(6, 0, 0, 0);
+<<<<<<< HEAD
         card.add(actionBtnsRow, gbc);
+=======
+        card.add(submitBtn, gbc);
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 
         GridBagConstraints outer = new GridBagConstraints();
         outer.fill = GridBagConstraints.BOTH;
@@ -1035,6 +1121,7 @@ public class ApplicantPanel {
 
         browseBtn.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser();
+<<<<<<< HEAD
             chooser.setDialogTitle("Select Document File(s)");
             chooser.setMultiSelectionEnabled(true);
             int result = chooser.showOpenDialog(dialog);
@@ -1052,12 +1139,23 @@ public class ApplicantPanel {
                     txtDocName.setText(formatFileNamesDisplay(selectedFilePaths));
                     persistCurrentDraft.run();
                 }
+=======
+            chooser.setDialogTitle("Select Document File");
+            int result = chooser.showOpenDialog(dialog);
+            if (result == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
+                File chosen = chooser.getSelectedFile();
+                txtDocName.setText(chosen.getName());
+                selectedFilePath[0] = chosen.getAbsolutePath();
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             }
         });
 
         submitBtn.addActionListener(e -> {
+<<<<<<< HEAD
             persistCurrentDraft.run();
 
+=======
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             String studentId = txtStudentId.getText().trim();
             String name = txtName.getText().trim();
             String program = (String) cmbProgram.getSelectedItem();
@@ -1067,6 +1165,7 @@ public class ApplicantPanel {
             String docRaw = txtDocName.getText().trim();
 
             if (studentId.isEmpty() || name.isEmpty() || program == null ||
+<<<<<<< HEAD
                 gwaRaw.isEmpty() || incomeRaw.isEmpty() || (docRaw.isEmpty() && selectedFilePaths.isEmpty())) {
                 JOptionPane.showMessageDialog(
                     dialog,
@@ -1074,6 +1173,15 @@ public class ApplicantPanel {
                     "Incomplete Input",
                     JOptionPane.WARNING_MESSAGE
                 );
+=======
+                gwaRaw.isEmpty() || incomeRaw.isEmpty() || docRaw.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Missing information. Please complete all required fields.", "Missing Info", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (ScholarshipManager.findApplicationByApplicantID(studentId) != null) {
+                JOptionPane.showMessageDialog(dialog, "Duplicate application found for Applicant ID: " + studentId, "Duplicate Flagged", JOptionPane.WARNING_MESSAGE);
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
                 return;
             }
 
@@ -1096,14 +1204,18 @@ public class ApplicantPanel {
 
             currentUser.setGwa(gwa);
 
+<<<<<<< HEAD
             String combinedFileNames = !selectedFilePaths.isEmpty()
                 ? formatFileNamesDisplay(selectedFilePaths)
                 : docRaw;
 
+=======
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             LocalDate defaultExpiry = LocalDate.now().plusYears(1);
             String docId = "DOC-" + (ScholarshipManager.applicationList.size() + 101);
             GovernmentDocument doc;
             if ("Academic Record".equals(docType)) {
+<<<<<<< HEAD
                 doc = new GovernmentDocument.AcademicRecord(docId, combinedFileNames, LocalDate.now(), defaultExpiry, gwa);
             } else if ("Income Certificate".equals(docType)) {
                 doc = new GovernmentDocument.IncomeCertificate(docId, combinedFileNames, LocalDate.now(), defaultExpiry, income);
@@ -1114,6 +1226,18 @@ public class ApplicantPanel {
             String appId = "APP-" + (ScholarshipManager.applicationList.size() + 101);
             if (!selectedFilePaths.isEmpty()) {
                 uploadedFilePathsByAppId.put(appId, joinFilePaths(selectedFilePaths));
+=======
+                doc = new GovernmentDocument.AcademicRecord(docId, docRaw, LocalDate.now(), defaultExpiry, gwa);
+            } else if ("Income Certificate".equals(docType)) {
+                doc = new GovernmentDocument.IncomeCertificate(docId, docRaw, LocalDate.now(), defaultExpiry, income);
+            } else {
+                doc = new GovernmentDocument.IdentificationDocument(docId, docRaw, LocalDate.now(), defaultExpiry);
+            }
+
+            String appId = "APP-" + (ScholarshipManager.applicationList.size() + 101);
+            if (!selectedFilePath[0].isEmpty()) {
+                uploadedFilePathsByAppId.put(appId, selectedFilePath[0]);
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             }
 
             ScholarshipApplication sa = new ScholarshipApplication(
@@ -1123,8 +1247,11 @@ public class ApplicantPanel {
 
             ScholarshipManager.applicationList.add(sa);
             ScholarshipManager.saveAllData();
+<<<<<<< HEAD
             clearDraftForApplicant(studentId, program);
             submittedSuccessfully[0] = true;
+=======
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 
             appendDisbursementNotice(
                 studentId,
@@ -1144,6 +1271,7 @@ public class ApplicantPanel {
         dialog.setVisible(true);
     }
 
+<<<<<<< HEAD
     private static List<String> collectCandidateFiles(ScholarshipApplication sa) {
         Map<String, String> entries = new LinkedHashMap<>();
 
@@ -1192,6 +1320,47 @@ public class ApplicantPanel {
             JOptionPane.showMessageDialog(parent, "Unable to locate file: " + pathOrName, "File Not Found", JOptionPane.WARNING_MESSAGE);
             return;
         }
+=======
+    private static void openUploadedFile(Component parent, ScholarshipApplication sa) {
+        if (sa == null || sa.getDocument() == null || sa.getDocument().getFileName() == null) {
+            JOptionPane.showMessageDialog(parent, "No uploaded file found.", "File Not Found", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String fileName = sa.getDocument().getFileName();
+        String savedPath = uploadedFilePathsByAppId.get(sa.getApplicationID());
+        File fileToOpen = null;
+
+        if (savedPath != null && !savedPath.isEmpty()) {
+            File candidate = new File(savedPath);
+            if (candidate.exists()) {
+                fileToOpen = candidate;
+            }
+        }
+
+        if (fileToOpen == null) {
+            File localCandidate = new File(fileName);
+            if (localCandidate.exists()) {
+                fileToOpen = localCandidate;
+            }
+        }
+
+        if (fileToOpen == null) {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Locate Uploaded File: " + fileName);
+            int res = chooser.showOpenDialog(parent);
+            if (res == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
+                fileToOpen = chooser.getSelectedFile();
+                uploadedFilePathsByAppId.put(sa.getApplicationID(), fileToOpen.getAbsolutePath());
+            }
+        }
+
+        if (fileToOpen == null || !fileToOpen.exists()) {
+            JOptionPane.showMessageDialog(parent, "Unable to locate file: " + fileName, "File Not Found", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         try {
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().open(fileToOpen);
@@ -1203,6 +1372,7 @@ public class ApplicantPanel {
         }
     }
 
+<<<<<<< HEAD
     private static void openUploadedFilesChooserDialog(Component parent, ScholarshipApplication sa) {
         List<String> files = collectCandidateFiles(sa);
         if (files.isEmpty()) {
@@ -1295,19 +1465,40 @@ public class ApplicantPanel {
     public static void openViewStatusDialog(JFrame parent, Applicant currentUser) {
         List<ScholarshipApplication> apps = getApplicationsForApplicant(currentUser.getApplicantID());
         if (apps.isEmpty()) {
+=======
+    public static void openViewStatusDialog(JFrame parent, Applicant currentUser) {
+        ScholarshipApplication sa = ScholarshipManager.findApplicationByApplicantID(currentUser.getApplicantID());
+        if (sa == null) {
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             JOptionPane.showMessageDialog(parent, "No application found for your Applicant ID yet.", "Not Found", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+<<<<<<< HEAD
         JDialog dialog = new JDialog(parent, "My Application Status", true);
         dialog.setSize(980, 360);
+=======
+        Disbursement disb = ScholarshipManager.findDisbursementByApplicationID(sa.getApplicationID());
+        String disbStatus = (disb != null) ? disb.getPaymentStatus() : "Not Yet Approved";
+        String disbAmount = (disb != null) ? String.format("P%.2f", disb.getAmount()) : "N/A";
+        String uploadedFile = (sa.getDocument() != null && sa.getDocument().getFileName() != null)
+            ? sa.getDocument().getFileName()
+            : "None";
+
+        JDialog dialog = new JDialog(parent, "My Application Status", true);
+        dialog.setSize(960, 320);
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         dialog.setLocationRelativeTo(parent);
         dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
         dialog.setLayout(new BorderLayout(10, 10));
 
         String[] cols = {
             "App ID", "Program", "GWA", "Annual Income",
+<<<<<<< HEAD
             "Uploaded Files", "App Status", "Disbursement"
+=======
+            "Uploaded File", "App Status", "Disbursement"
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         };
         DefaultTableModel model = new DefaultTableModel(cols, 0) {
             @Override
@@ -1316,6 +1507,7 @@ public class ApplicantPanel {
             }
         };
 
+<<<<<<< HEAD
         for (ScholarshipApplication sa : apps) {
             Disbursement disb = ScholarshipManager.findDisbursementByApplicationID(sa.getApplicationID());
             String disbStatus = (disb != null) ? disb.getPaymentStatus() : "Not Yet Approved";
@@ -1334,11 +1526,23 @@ public class ApplicantPanel {
                 disbStatus + " (" + disbAmount + ")"
             });
         }
+=======
+        model.addRow(new Object[]{
+            sa.getApplicationID(),
+            sa.getScholarshipType(),
+            String.format("%.2f", sa.getGwa()),
+            String.format("P%.2f", sa.getAnnualIncome()),
+            uploadedFile,
+            sa.getStatus(),
+            disbStatus + " (" + disbAmount + ")"
+        });
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 
         JTable table = new JTable(model);
         table.setRowHeight(28);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+<<<<<<< HEAD
         if (!apps.isEmpty()) {
             table.setRowSelectionInterval(0, 0);
         }
@@ -1351,6 +1555,13 @@ public class ApplicantPanel {
             ScholarshipApplication target = (sel >= 0 && sel < apps.size()) ? apps.get(sel) : apps.get(0);
             openUploadedFilesChooserDialog(dialog, target);
         });
+=======
+
+        JButton openFileBtn = AutomatedApplication.createActionButton(
+            "Open File", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 120, 34
+        );
+        openFileBtn.addActionListener(e -> openUploadedFile(dialog, sa));
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 
         JButton closeBtn = AutomatedApplication.createActionButton(
             "Close Window", AutomatedApplication.PRIMARY_DARK, Color.WHITE, 130, 34
@@ -1359,7 +1570,11 @@ public class ApplicantPanel {
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         bottomPanel.setOpaque(false);
+<<<<<<< HEAD
         bottomPanel.add(viewFilesBtn);
+=======
+        bottomPanel.add(openFileBtn);
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         bottomPanel.add(closeBtn);
 
         JPanel body = new JPanel(new BorderLayout(10, 10));
@@ -1371,4 +1586,8 @@ public class ApplicantPanel {
         dialog.add(body, BorderLayout.CENTER);
         dialog.setVisible(true);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
