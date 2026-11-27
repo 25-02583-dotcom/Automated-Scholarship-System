@@ -2,23 +2,16 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-<<<<<<< HEAD
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-=======
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.ArrayList;
-<<<<<<< HEAD
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-=======
-import java.util.List;
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 
 public class AdminPanel {
     public static final List<String[]> customPrograms = new ArrayList<>();
@@ -132,11 +125,7 @@ public class AdminPanel {
             new Color(224, 231, 255),
             AutomatedApplication.PRIMARY_ACCENT,
             "Review Applications",
-<<<<<<< HEAD
             "Inspect submitted applications, browse uploaded files, and approve or reject.",
-=======
-            "Inspect submitted applications, open uploaded documents, and approve or reject.",
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             "Open Review  ->",
             AutomatedApplication.PRIMARY_ACCENT,
             e -> openReviewApplicationsDialog(frame)
@@ -158,11 +147,7 @@ public class AdminPanel {
             new Color(220, 252, 231),
             new Color(21, 128, 61),
             "Disbursement Monitoring",
-<<<<<<< HEAD
             "All applicants appear automatically; mark payouts as Pending or Released.",
-=======
-            "Enter cash grant amounts, record disbursements, and mark payouts as Released.",
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             "Open Disbursement  ->",
             new Color(21, 128, 61),
             e -> openDisbursementMonitoringDialog(frame)
@@ -203,11 +188,8 @@ public class AdminPanel {
         logoutBtn.setFocusPainted(false);
         logoutBtn.setBorderPainted(false);
         logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-<<<<<<< HEAD
         AutomatedApplication.applyButtonHover(logoutBtn, AutomatedApplication.BTN_RED,
             new Color(220, 38, 38));
-=======
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         logoutBtn.setPreferredSize(new Dimension(96, 30));
         logoutBtn.addActionListener(e -> {
             saveCustomProgramsToFile();
@@ -412,11 +394,7 @@ public class AdminPanel {
 
         String[] cols = {
             "App ID", "Applicant ID", "Name", "Program",
-<<<<<<< HEAD
             "GWA", "Annual Income", "Documents", "Status"
-=======
-            "GWA", "Annual Income", "Document", "Status"
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         };
         DefaultTableModel model = new DefaultTableModel(cols, 0) {
             @Override
@@ -450,28 +428,17 @@ public class AdminPanel {
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
 
-<<<<<<< HEAD
         JButton viewFilesBtn = AutomatedApplication.createActionButton(
             "View Files", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 125, 34
         );
         viewFilesBtn.addActionListener(e -> {
-=======
-        JButton openFileBtn = AutomatedApplication.createActionButton(
-            "Open File", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 120, 34
-        );
-        openFileBtn.addActionListener(e -> {
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             int row = table.getSelectedRow();
             if (row < 0 || row >= ScholarshipManager.applicationList.size()) {
                 JOptionPane.showMessageDialog(dialog, "Select an application first.", "No Selection", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             ScholarshipApplication sa = ScholarshipManager.applicationList.get(row);
-<<<<<<< HEAD
             openUploadedFilesChooserDialog(dialog, sa);
-=======
-            openAdminUploadedFile(dialog, sa);
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         });
 
         JButton approveBtn = AutomatedApplication.createActionButton(
@@ -523,11 +490,7 @@ public class AdminPanel {
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         bottomPanel.setOpaque(false);
-<<<<<<< HEAD
         bottomPanel.add(viewFilesBtn);
-=======
-        bottomPanel.add(openFileBtn);
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         bottomPanel.add(approveBtn);
         bottomPanel.add(rejectBtn);
         bottomPanel.add(closeBtn);
@@ -542,7 +505,6 @@ public class AdminPanel {
         dialog.setVisible(true);
     }
 
-<<<<<<< HEAD
     private static List<String> collectCandidateFiles(ScholarshipApplication sa) {
         Map<String, String> entries = new LinkedHashMap<>();
 
@@ -589,47 +551,19 @@ public class AdminPanel {
         }
         if (!fileToOpen.exists()) {
             JOptionPane.showMessageDialog(parent, "Unable to locate file: " + pathOrName, "File Not Found", JOptionPane.WARNING_MESSAGE);
-=======
-    private static void openAdminUploadedFile(Component parent, ScholarshipApplication sa) {
-        if (sa == null || sa.getDocument() == null || sa.getDocument().getFileName() == null) {
-            JOptionPane.showMessageDialog(parent, "No uploaded file found.", "File Not Found", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        String fileName = sa.getDocument().getFileName();
-        String savedPath = ApplicantPanel.uploadedFilePathsByAppId.get(sa.getApplicationID());
-        File fileToOpen = null;
-        if (savedPath != null && !savedPath.isEmpty()) {
-            File candidate = new File(savedPath);
-            if (candidate.exists()) {
-                fileToOpen = candidate;
-            }
-        }
-        if (fileToOpen == null) {
-            File localCandidate = new File(fileName);
-            if (localCandidate.exists()) {
-                fileToOpen = localCandidate;
-            }
-        }
-        if (fileToOpen == null || !fileToOpen.exists()) {
-            JOptionPane.showMessageDialog(parent, "Unable to locate file: " + fileName, "File Not Found", JOptionPane.WARNING_MESSAGE);
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             return;
         }
         try {
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().open(fileToOpen);
-<<<<<<< HEAD
             } else {
                 JOptionPane.showMessageDialog(parent, "Desktop file opening is not supported on this system.", "Error", JOptionPane.ERROR_MESSAGE);
-=======
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(parent, "Could not open file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-<<<<<<< HEAD
     private static void openUploadedFilesChooserDialog(Component parent, ScholarshipApplication sa) {
         List<String> files = collectCandidateFiles(sa);
         if (files.isEmpty()) {
@@ -769,23 +703,14 @@ public class AdminPanel {
 
         JDialog dialog = new JDialog(parent, "Disbursement Monitoring", true);
         dialog.setSize(980, 480);
-=======
-    public static void openDisbursementMonitoringDialog(JFrame parent) {
-        JDialog dialog = new JDialog(parent, "Disbursement Monitoring", true);
-        dialog.setSize(960, 480);
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         dialog.setLocationRelativeTo(parent);
         dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
         dialog.setLayout(new BorderLayout(10, 10));
 
-<<<<<<< HEAD
         String[] cols = {
             "Disbursement ID", "App ID", "Applicant ID", "Applicant Name",
             "Cash Grant Amount", "Status", "Date"
         };
-=======
-        String[] cols = {"Disbursement ID", "App ID", "Applicant ID", "Cash Grant Amount", "Status", "Date"};
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         DefaultTableModel model = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -793,7 +718,6 @@ public class AdminPanel {
             }
         };
 
-<<<<<<< HEAD
         final List<Disbursement> rowDisbursements = new ArrayList<>();
 
         Runnable reloadDisb = () -> {
@@ -812,15 +736,6 @@ public class AdminPanel {
                     sa.getApplicationID(),
                     sa.getApplicantID(),
                     applicantName,
-=======
-        Runnable reloadDisb = () -> {
-            model.setRowCount(0);
-            for (Disbursement d : ScholarshipManager.disbursementList) {
-                model.addRow(new Object[]{
-                    d.getDisbursementID(),
-                    d.getApplicationID(),
-                    d.getApplicantID(),
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
                     String.format("P%.2f", d.getAmount()),
                     d.getPaymentStatus(),
                     d.getDate()
@@ -834,7 +749,6 @@ public class AdminPanel {
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
 
-<<<<<<< HEAD
         JButton pendingBtn = AutomatedApplication.createActionButton(
             "Mark Pending", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 140, 34
         );
@@ -849,52 +763,18 @@ public class AdminPanel {
                 dialog,
                 "Confirm or enter Cash Grant Amount for Pending status (in P):",
                 String.format("%.2f", d.getAmount())
-=======
-        JButton recordBtn = AutomatedApplication.createActionButton(
-            "Record Disbursement", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 165, 34
-        );
-        recordBtn.addActionListener(e -> {
-            String appId = JOptionPane.showInputDialog(dialog, "Enter Application ID (e.g., APP-101):");
-            if (appId == null || appId.trim().isEmpty()) {
-                return;
-            }
-            ScholarshipApplication sa = null;
-            for (ScholarshipApplication item : ScholarshipManager.applicationList) {
-                if (item.getApplicationID().equalsIgnoreCase(appId.trim())) {
-                    sa = item;
-                    break;
-                }
-            }
-            if (sa == null) {
-                JOptionPane.showMessageDialog(dialog, "Application ID not found.", "Not Found", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            String amtRaw = JOptionPane.showInputDialog(
-                dialog,
-                "Enter Cash Grant Amount to Disburse (in P, e.g., 5000.00):",
-                "Cash Disbursement Grant Amount",
-                JOptionPane.PLAIN_MESSAGE
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             );
             if (amtRaw == null || amtRaw.trim().isEmpty()) {
                 return;
             }
-<<<<<<< HEAD
             double pendingAmount;
             try {
                 pendingAmount = Double.parseDouble(amtRaw.trim());
                 if (pendingAmount < 0) throw new NumberFormatException();
-=======
-            double amount;
-            try {
-                amount = Double.parseDouble(amtRaw.trim());
-                if (amount <= 0) throw new NumberFormatException();
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(dialog, "Invalid cash grant amount.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-<<<<<<< HEAD
             d.updatePaymentStatus("Pending", LocalDate.now());
             ScholarshipManager.saveAllData();
             ApplicantPanel.appendDisbursementNotice(
@@ -907,31 +787,6 @@ public class AdminPanel {
             );
             reloadDisb.run();
             JOptionPane.showMessageDialog(dialog, "Cash grant marked as Pending and notice sent to applicant.", "Pending", JOptionPane.INFORMATION_MESSAGE);
-=======
-            String disbId = "DISB-" + (ScholarshipManager.disbursementList.size() + 101);
-            Disbursement disb = new Disbursement(
-                disbId,
-                sa.getApplicationID(),
-                sa.getApplicantID(),
-                sa.getApplicantName(),
-                amount,
-                LocalDate.now(),
-                "Pending"
-            );
-            disb.recordDisbursement();
-            ScholarshipManager.disbursementList.add(disb);
-            ScholarshipManager.saveAllData();
-            ApplicantPanel.appendDisbursementNotice(
-                sa.getApplicantID(),
-                "Cash Grant Recorded: " + String.format("P%.2f", amount) + " (" + disbId + ")",
-                String.format(
-                    "Your cash grant of P%.2f (Disbursement ID: %s, App ID: %s) has been recorded with status Pending.",
-                    amount, disbId, sa.getApplicationID()
-                )
-            );
-            reloadDisb.run();
-            JOptionPane.showMessageDialog(dialog, "Cash disbursement grant recorded and notice sent to applicant.", "Recorded", JOptionPane.INFORMATION_MESSAGE);
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         });
 
         JButton releaseBtn = AutomatedApplication.createActionButton(
@@ -939,19 +794,11 @@ public class AdminPanel {
         );
         releaseBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
-<<<<<<< HEAD
             if (row < 0 || row >= rowDisbursements.size()) {
                 JOptionPane.showMessageDialog(dialog, "Select a disbursement record to release.", "No Selection", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             Disbursement d = rowDisbursements.get(row);
-=======
-            if (row < 0 || row >= ScholarshipManager.disbursementList.size()) {
-                JOptionPane.showMessageDialog(dialog, "Select a disbursement record to release.", "No Selection", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            Disbursement d = ScholarshipManager.disbursementList.get(row);
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             String amtRaw = JOptionPane.showInputDialog(
                 dialog,
                 "Confirm or enter Cash Grant Amount to Release (in P):",
@@ -989,11 +836,7 @@ public class AdminPanel {
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         bottomPanel.setOpaque(false);
-<<<<<<< HEAD
         bottomPanel.add(pendingBtn);
-=======
-        bottomPanel.add(recordBtn);
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         bottomPanel.add(releaseBtn);
         bottomPanel.add(closeBtn);
 
@@ -1042,8 +885,4 @@ public class AdminPanel {
 
         JOptionPane.showMessageDialog(parent, summaryText, "Summary Report", JOptionPane.INFORMATION_MESSAGE);
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48

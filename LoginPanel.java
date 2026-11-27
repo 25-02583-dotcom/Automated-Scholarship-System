@@ -33,11 +33,8 @@ public class LoginPanel {
         topExitBtn.setFocusPainted(false);
         topExitBtn.setContentAreaFilled(false);
         topExitBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-<<<<<<< HEAD
         AutomatedApplication.applyButtonHover(topExitBtn, AutomatedApplication.PRIMARY_DARK,
             new Color(71, 85, 105));
-=======
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         topRight.add(topExitBtn);
 
         topBar.add(brandLbl, BorderLayout.WEST);
@@ -122,10 +119,7 @@ public class LoginPanel {
         togglePassBtn.setBackground(new Color(238, 242, 255));
         togglePassBtn.setForeground(AutomatedApplication.PRIMARY_ACCENT);
         togglePassBtn.setBorder(BorderFactory.createLineBorder(new Color(199, 210, 254), 1, true));
-<<<<<<< HEAD
         AutomatedApplication.applyButtonHover(togglePassBtn, new Color(238, 242, 255), new Color(199, 210, 254));
-=======
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         togglePassBtn.addActionListener(e -> {
             if (passField.getEchoChar() == (char) 0) {
                 passField.setEchoChar(defaultEchoChar);
@@ -260,10 +254,7 @@ public class LoginPanel {
         toggleRegPassBtn.setBackground(new Color(238, 242, 255));
         toggleRegPassBtn.setForeground(AutomatedApplication.PRIMARY_ACCENT);
         toggleRegPassBtn.setBorder(BorderFactory.createLineBorder(new Color(199, 210, 254), 1, true));
-<<<<<<< HEAD
         AutomatedApplication.applyButtonHover(toggleRegPassBtn, new Color(238, 242, 255), new Color(199, 210, 254));
-=======
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 
         txtPassword.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
@@ -401,8 +392,4 @@ public class LoginPanel {
         }
         return hasUppercase && hasNumber && hasSpecial;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48

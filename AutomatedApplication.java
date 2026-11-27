@@ -1,8 +1,5 @@
 import javax.swing.*;
-<<<<<<< HEAD
 import javax.swing.plaf.basic.BasicButtonUI;
-=======
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
@@ -54,7 +51,6 @@ public class AutomatedApplication {
 
     public static JButton createRoundedButton(String text, Color bg, Color fg, int arc) {
         JButton btn = new JButton(text) {
-<<<<<<< HEAD
             private float hoverProgress = 0f;
             private float hoverTarget = 0f;
             private final Timer hoverTimer = new Timer(15, e -> {
@@ -83,13 +79,10 @@ public class AutomatedApplication {
                 });
             }
 
-=======
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-<<<<<<< HEAD
                 g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
                 Color hoverColor = (bg.getRed() > 235 && bg.getGreen() > 235 && bg.getBlue() > 235)
@@ -118,30 +111,20 @@ public class AutomatedApplication {
                     g2.draw(new RoundRectangle2D.Float(0.8f, 0.8f, getWidth() - 2.6f,
                         getHeight() - 2.6f, arc, arc));
                 }
-=======
-                g2.setColor(getModel().isPressed() ? bg.darker() : bg);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), arc, arc));
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
-<<<<<<< HEAD
 
         btn.setUI(new BasicButtonUI());
-=======
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setForeground(fg);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setOpaque(false);
-<<<<<<< HEAD
         btn.setBorder(BorderFactory.createEmptyBorder(7, 14, 7, 14));
         btn.setRolloverEnabled(true);
-=======
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
     }
@@ -151,7 +134,6 @@ public class AutomatedApplication {
         btn.setPreferredSize(new Dimension(w, h));
         return btn;
     }
-<<<<<<< HEAD
 
     // Reusable hover styling for ordinary Swing buttons (Exit, Logout, Show/Hide).
     public static void applyButtonHover(JButton button, Color normal, Color hover) {
@@ -192,6 +174,3 @@ public class AutomatedApplication {
         return new Color(r, g, b);
     }
 }
-=======
-}
->>>>>>> 20a6e8d98ef8f75e99ae593282529920ffb68f48
