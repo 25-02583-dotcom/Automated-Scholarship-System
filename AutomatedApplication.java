@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
@@ -50,22 +51,80 @@ public class AutomatedApplication {
 
     public static JButton createRoundedButton(String text, Color bg, Color fg, int arc) {
         JButton btn = new JButton(text) {
+            private float hoverProgress = 0f;
+            private float hoverTarget = 0f;
+            private final Timer hoverTimer = new Timer(15, e -> {
+                float difference = hoverTarget - hoverProgress;
+                if (Math.abs(difference) < 0.035f) {
+                    hoverProgress = hoverTarget;
+                    ((Timer) e.getSource()).stop();
+                } else {
+                    hoverProgress += difference * 0.28f;
+                }
+                repaint();
+            });
+
+            {
+                addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                        if (isEnabled()) {
+                            hoverTarget = 1f;
+                            hoverTimer.start();
+                        }
+                    }
+                    @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                        hoverTarget = 0f;
+                        hoverTimer.start();
+                    }
+                });
+            }
+
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isPressed() ? bg.darker() : bg);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), arc, arc));
+                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+                Color hoverColor = (bg.getRed() > 235 && bg.getGreen() > 235 && bg.getBlue() > 235)
+                    ? new Color(224, 231, 255) : brighten(bg, 0.22f);
+                Color current = blend(bg, hoverColor, hoverProgress);
+                boolean pressed = getModel().isPressed() && getModel().isArmed();
+                if (!isEnabled()) current = new Color(148, 163, 184);
+                if (pressed) current = current.darker();
+
+                int shadowOffset = Math.round(4f * hoverProgress);
+                if (isEnabled() && !pressed && hoverProgress > 0.02f) {
+                    g2.setColor(new Color(15, 23, 42, Math.round(24 + 34 * hoverProgress)));
+                    g2.fill(new RoundRectangle2D.Float(1, 3 + shadowOffset, getWidth() - 2,
+                        getHeight() - 3, arc, arc));
+                }
+
+                GradientPaint gradient = new GradientPaint(0, 0, current.brighter(),
+                    0, getHeight(), current);
+                g2.setPaint(gradient);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1,
+                    getHeight() - 1, arc, arc));
+
+                if (hoverProgress > 0.05f) {
+                    g2.setColor(new Color(255, 255, 255, Math.round(28 * hoverProgress)));
+                    g2.setStroke(new BasicStroke(1f));
+                    g2.draw(new RoundRectangle2D.Float(0.8f, 0.8f, getWidth() - 2.6f,
+                        getHeight() - 2.6f, arc, arc));
+                }
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
+
+        btn.setUI(new BasicButtonUI());
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setForeground(fg);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setOpaque(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(7, 14, 7, 14));
+        btn.setRolloverEnabled(true);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
     }
@@ -74,5 +133,44 @@ public class AutomatedApplication {
         JButton btn = createRoundedButton(text, bg, fg, 10);
         btn.setPreferredSize(new Dimension(w, h));
         return btn;
+    }
+
+    // Reusable hover styling for ordinary Swing buttons (Exit, Logout, Show/Hide).
+    public static void applyButtonHover(JButton button, Color normal, Color hover) {
+        // A consistent BasicButtonUI prevents the system look and feel from masking hover colors.
+        button.setUI(new BasicButtonUI());
+        button.setBackground(normal);
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (button.isEnabled()) {
+                    button.setBackground(hover);
+                    button.repaint();
+                }
+            }
+            @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                button.setBackground(normal);
+                button.repaint();
+            }
+        });
+    }
+
+    private static Color blend(Color start, Color end, float amount) {
+        float t = Math.max(0f, Math.min(1f, amount));
+        int r = Math.round(start.getRed() + (end.getRed() - start.getRed()) * t);
+        int g = Math.round(start.getGreen() + (end.getGreen() - start.getGreen()) * t);
+        int b = Math.round(start.getBlue() + (end.getBlue() - start.getBlue()) * t);
+        return new Color(r, g, b);
+    }
+
+    private static Color brighten(Color color, float amount) {
+        int r = Math.min(255, Math.round(color.getRed() + (255 - color.getRed()) * amount));
+        int g = Math.min(255, Math.round(color.getGreen() + (255 - color.getGreen()) * amount));
+        int b = Math.min(255, Math.round(color.getBlue() + (255 - color.getBlue()) * amount));
+        return new Color(r, g, b);
     }
 }

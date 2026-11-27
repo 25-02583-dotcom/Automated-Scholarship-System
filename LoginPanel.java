@@ -33,13 +33,15 @@ public class LoginPanel {
         topExitBtn.setFocusPainted(false);
         topExitBtn.setContentAreaFilled(false);
         topExitBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        AutomatedApplication.applyButtonHover(topExitBtn, AutomatedApplication.PRIMARY_DARK,
+            new Color(71, 85, 105));
         topRight.add(topExitBtn);
 
         topBar.add(brandLbl, BorderLayout.WEST);
         topBar.add(topRight, BorderLayout.EAST);
         frame.add(topBar, BorderLayout.NORTH);
 
-        // Main Non-Scrollable Content (Hero + Login only)
+        // Main Non-Scrollable Content
         JPanel centerWrapper = new JPanel(new GridBagLayout());
         centerWrapper.setBackground(AutomatedApplication.BG_SOFT);
         centerWrapper.setBorder(new EmptyBorder(24, 28, 24, 28));
@@ -117,6 +119,7 @@ public class LoginPanel {
         togglePassBtn.setBackground(new Color(238, 242, 255));
         togglePassBtn.setForeground(AutomatedApplication.PRIMARY_ACCENT);
         togglePassBtn.setBorder(BorderFactory.createLineBorder(new Color(199, 210, 254), 1, true));
+        AutomatedApplication.applyButtonHover(togglePassBtn, new Color(238, 242, 255), new Color(199, 210, 254));
         togglePassBtn.addActionListener(e -> {
             if (passField.getEchoChar() == (char) 0) {
                 passField.setEchoChar(defaultEchoChar);
@@ -251,6 +254,7 @@ public class LoginPanel {
         toggleRegPassBtn.setBackground(new Color(238, 242, 255));
         toggleRegPassBtn.setForeground(AutomatedApplication.PRIMARY_ACCENT);
         toggleRegPassBtn.setBorder(BorderFactory.createLineBorder(new Color(199, 210, 254), 1, true));
+        AutomatedApplication.applyButtonHover(toggleRegPassBtn, new Color(238, 242, 255), new Color(199, 210, 254));
 
         txtPassword.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override

@@ -453,6 +453,8 @@ public class ApplicantPanel {
         logoutBtn.setFocusPainted(false);
         logoutBtn.setBorderPainted(false);
         logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        AutomatedApplication.applyButtonHover(logoutBtn, AutomatedApplication.BTN_RED,
+            new Color(220, 38, 38));
         logoutBtn.setPreferredSize(new Dimension(96, 30));
         logoutBtn.addActionListener(e -> {
             ScholarshipManager.saveAllData();
