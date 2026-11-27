@@ -3,7 +3,6 @@ import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
 public class AutomatedApplication {
-    // Indigo & Soft Sky Palette
     public static final Color PRIMARY_DARK = new Color(30, 41, 59);
     public static final Color PRIMARY_ACCENT = new Color(67, 56, 202);
     public static final Color BG_SOFT = new Color(238, 242, 255);

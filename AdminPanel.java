@@ -1,80 +1,69 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
+import java.io.*;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AdminPanel {
     public static final List<String[]> customPrograms = new ArrayList<>();
+    private static final String CUSTOM_PROGRAMS_FILE = "custom_scholarships.txt";
 
-    private static ScholarshipApplication findAppById(String appId) {
-        for (ScholarshipApplication sa : ScholarshipManager.applicationList) {
-            if (sa.getApplicationID().equalsIgnoreCase(appId)) {
-                return sa;
-            }
-        }
-        return null;
+    static {
+        loadCustomProgramsFromFile();
     }
 
-    private static void openUploadedFileForApplication(Component parent, String appId, String fileName) {
-        if (fileName == null || fileName.trim().isEmpty() || "None".equalsIgnoreCase(fileName.trim())) {
-            JOptionPane.showMessageDialog(parent, "No uploaded file found for this application.", "No File", JOptionPane.WARNING_MESSAGE);
+    public static void loadCustomProgramsFromFile() {
+        File file = new File(CUSTOM_PROGRAMS_FILE);
+        if (!file.exists()) {
             return;
         }
-
-        String savedPath = ApplicantPanel.uploadedFilePathsByAppId.get(appId);
-        File targetFile = null;
-
-        if (savedPath != null && !savedPath.trim().isEmpty()) {
-            File f = new File(savedPath);
-            if (f.exists()) {
-                targetFile = f;
-            }
-        }
-
-        if (targetFile == null) {
-            File localFile = new File(fileName);
-            if (localFile.exists()) {
-                targetFile = localFile;
-            }
-        }
-
-        if (targetFile == null) {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle("Select Uploaded File: " + fileName);
-            int res = chooser.showOpenDialog(parent);
-            if (res == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
-                targetFile = chooser.getSelectedFile();
-                ApplicantPanel.uploadedFilePathsByAppId.put(appId, targetFile.getAbsolutePath());
-            }
-        }
-
-        if (targetFile == null || !targetFile.exists()) {
-            JOptionPane.showMessageDialog(parent, "File not found: " + fileName, "File Not Found", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
         try {
-            if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().open(targetFile);
-            } else {
-                JOptionPane.showMessageDialog(parent, "Opening files is not supported on this device.", "Error", JOptionPane.ERROR_MESSAGE);
+            List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+            customPrograms.clear();
+            for (String line : lines) {
+                String[] parts = line.split("\\|", 3);
+                if (parts.length == 3) {
+                    customPrograms.add(new String[]{parts[0], parts[1], parts[2]});
+                }
             }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(parent, "Unable to open file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (IOException ignored) {
+        }
+    }
+
+    public static void saveCustomProgramsToFile() {
+        try (BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(
+                    new FileOutputStream(CUSTOM_PROGRAMS_FILE, false),
+                    StandardCharsets.UTF_8))) {
+            for (String[] prog : customPrograms) {
+                String name = prog[0].replace("|", "/").trim();
+                String elig = prog[1].replace("|", "/").trim();
+                String ben = prog[2].replace("|", "/").trim();
+                bw.write(name + "|" + elig + "|" + ben);
+                bw.newLine();
+            }
+        } catch (IOException ignored) {
         }
     }
 
     public static void createAndShowAdminDashboard() {
+        loadCustomProgramsFromFile();
+
         JFrame frame = new JFrame("Administrator Portal");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        frame.setMinimumSize(new Dimension(980, 680));
+        frame.setMinimumSize(new Dimension(1020, 700));
         frame.setLocationRelativeTo(null);
         frame.setLayout(new BorderLayout());
         frame.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
@@ -88,30 +77,30 @@ public class AdminPanel {
         brandLbl.setFont(new Font("Segoe UI", Font.BOLD, 17));
         brandLbl.setForeground(Color.WHITE);
 
-        JLabel roleLbl = new JLabel("System Administrator");
-        roleLbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        roleLbl.setForeground(new Color(203, 213, 225));
+        JLabel userLbl = new JLabel("Administrator (" + ScholarshipManager.ADMIN_USERNAME + ")");
+        userLbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        userLbl.setForeground(new Color(203, 213, 225));
 
         topBar.add(brandLbl, BorderLayout.WEST);
-        topBar.add(roleLbl, BorderLayout.EAST);
+        topBar.add(userLbl, BorderLayout.EAST);
         frame.add(topBar, BorderLayout.NORTH);
 
         JPanel body = new JPanel();
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setBackground(AutomatedApplication.BG_SOFT);
-        body.setBorder(new EmptyBorder(18, 26, 18, 26));
+        body.setBorder(new EmptyBorder(22, 26, 22, 26));
 
         JPanel banner = AutomatedApplication.createRoundedPanel(AutomatedApplication.PRIMARY_DARK, null, 18);
         banner.setLayout(new BorderLayout());
-        banner.setBorder(new EmptyBorder(18, 24, 18, 24));
-        banner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 96));
+        banner.setBorder(new EmptyBorder(20, 24, 20, 24));
+        banner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 108));
         banner.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel welcomeLbl = new JLabel("Welcome, Administrator");
         welcomeLbl.setFont(new Font("Segoe UI", Font.BOLD, 21));
         welcomeLbl.setForeground(Color.WHITE);
 
-        JLabel subLbl = new JLabel("Review applications, monitor disbursements, add scholarships, and generate reports.");
+        JLabel subLbl = new JLabel("Review applications, manage scholarship programs, monitor disbursements, and view summaries.");
         subLbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         subLbl.setForeground(new Color(203, 213, 225));
 
@@ -123,67 +112,65 @@ public class AdminPanel {
         textCol.add(subLbl);
         banner.add(textCol, BorderLayout.CENTER);
 
-        JLabel secTitle = new JLabel("Admin Management");
+        JLabel secTitle = new JLabel("Administrator Actions");
         secTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         secTitle.setForeground(AutomatedApplication.TEXT_DARK);
         secTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel cardsGrid = new JPanel(new GridLayout(2, 2, 20, 16));
-        cardsGrid.setOpaque(false);
-        cardsGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cardsGrid.setPreferredSize(new Dimension(0, 340));
-        cardsGrid.setMaximumSize(new Dimension(Integer.MAX_VALUE, 370));
+        JPanel cardsRow = new JPanel(new GridLayout(2, 2, 20, 18));
+        cardsRow.setOpaque(false);
+        cardsRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cardsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 420));
 
-        cardsGrid.add(createActionCard(
-            "APPLICATIONS",
+        cardsRow.add(createActionCard(
+            "REVIEW",
             new Color(224, 231, 255),
             AutomatedApplication.PRIMARY_ACCENT,
             "Review Applications",
-            "Inspect pending applications, view uploaded files, and approve or reject entries.",
-            "Review Entries  ->",
+            "Inspect submitted applications, open uploaded documents, and approve or reject.",
+            "Open Review  ->",
             AutomatedApplication.PRIMARY_ACCENT,
             e -> openReviewApplicationsDialog(frame)
         ));
 
-        cardsGrid.add(createActionCard(
+        cardsRow.add(createActionCard(
+            "PROGRAMS",
+            new Color(254, 243, 199),
+            new Color(180, 83, 9),
+            "Add Scholarship Program",
+            "Publish new scholarship programs or delete custom programs permanently.",
+            "Manage Programs  ->",
+            new Color(180, 83, 9),
+            e -> openAddScholarshipDialog(frame)
+        ));
+
+        cardsRow.add(createActionCard(
             "DISBURSEMENT",
             new Color(220, 252, 231),
             new Color(21, 128, 61),
             "Disbursement Monitoring",
-            "Record disbursement details and mark allowances as Pending or Released.",
-            "Manage Funds  ->",
+            "Enter cash grant amounts, record disbursements, and mark payouts as Released.",
+            "Open Disbursement  ->",
             new Color(21, 128, 61),
             e -> openDisbursementMonitoringDialog(frame)
         ));
 
-        cardsGrid.add(createActionCard(
-            "SCHOLARSHIPS",
-            new Color(224, 242, 254),
-            new Color(3, 105, 161),
-            "Add Scholarship",
-            "Create and publish new scholarship programs visible to applicants.",
-            "Add Scholarship  ->",
-            new Color(3, 105, 161),
-            e -> openAddScholarshipDialog(frame)
-        ));
-
-        cardsGrid.add(createActionCard(
+        cardsRow.add(createActionCard(
             "REPORTS",
-            new Color(254, 243, 199),
-            new Color(180, 83, 9),
-            "Generate Reports",
-            "View summary reports of applications, eligibility, and disbursement statuses.",
-            "View Report  ->",
-            new Color(180, 83, 9),
-            e -> openReportsDialog(frame)
+            new Color(241, 245, 249),
+            AutomatedApplication.PRIMARY_DARK,
+            "Summary Report",
+            "View totals of applicants, applications, statuses, and released disbursements.",
+            "View Summary  ->",
+            AutomatedApplication.PRIMARY_DARK,
+            e -> openSummaryReportDialog(frame)
         ));
 
         body.add(banner);
-        body.add(Box.createVerticalGlue());
-        body.add(Box.createRigidArea(new Dimension(0, 12)));
+        body.add(Box.createRigidArea(new Dimension(0, 18)));
         body.add(secTitle);
-        body.add(Box.createRigidArea(new Dimension(0, 12)));
-        body.add(cardsGrid);
+        body.add(Box.createRigidArea(new Dimension(0, 14)));
+        body.add(cardsRow);
         body.add(Box.createVerticalGlue());
         frame.add(body, BorderLayout.CENTER);
 
@@ -205,6 +192,7 @@ public class AdminPanel {
         logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         logoutBtn.setPreferredSize(new Dimension(96, 30));
         logoutBtn.addActionListener(e -> {
+            saveCustomProgramsToFile();
             ScholarshipManager.saveAllData();
             frame.dispose();
             LoginPanel.createAndShowLoginWindow();
@@ -230,8 +218,8 @@ public class AdminPanel {
         JPanel card = AutomatedApplication.createRoundedPanel(
             Color.WHITE, new Color(199, 210, 254), 16
         );
-        card.setLayout(new BorderLayout(0, 8));
-        card.setBorder(new EmptyBorder(14, 20, 14, 20));
+        card.setLayout(new BorderLayout(0, 10));
+        card.setBorder(new EmptyBorder(16, 20, 16, 20));
 
         JLabel badgeLbl = new JLabel(" " + badgeText + " ");
         badgeLbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
@@ -242,11 +230,11 @@ public class AdminPanel {
         badgeLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblTitle = new JLabel(title);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblTitle.setForeground(AutomatedApplication.TEXT_DARK);
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblDesc = new JLabel("<html><div style='color:#64748b; font-size:12px; line-height:1.3;'>" + desc + "</div></html>");
+        JLabel lblDesc = new JLabel("<html><div style='color:#64748b; font-size:12px; line-height:1.35;'>" + desc + "</div></html>");
         lblDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblDesc.setForeground(AutomatedApplication.TEXT_MUTED);
         lblDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -255,14 +243,14 @@ public class AdminPanel {
         topText.setLayout(new BoxLayout(topText, BoxLayout.Y_AXIS));
         topText.setOpaque(false);
         topText.add(badgeLbl);
-        topText.add(Box.createRigidArea(new Dimension(0, 7)));
+        topText.add(Box.createRigidArea(new Dimension(0, 8)));
         topText.add(lblTitle);
         topText.add(Box.createRigidArea(new Dimension(0, 4)));
         topText.add(lblDesc);
 
         JButton actionBtn = AutomatedApplication.createRoundedButton(btnText, btnColor, Color.WHITE, 8);
         actionBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        actionBtn.setPreferredSize(new Dimension(155, 32));
+        actionBtn.setPreferredSize(new Dimension(155, 34));
         actionBtn.addActionListener(action);
 
         JPanel bottomRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -275,46 +263,48 @@ public class AdminPanel {
     }
 
     public static void openAddScholarshipDialog(JFrame parent) {
+        loadCustomProgramsFromFile();
+
         JDialog dialog = new JDialog(parent, "Add Scholarship Program", true);
-        dialog.setSize(760, 540);
+        dialog.setSize(780, 520);
         dialog.setLocationRelativeTo(parent);
         dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
         dialog.setLayout(new BorderLayout(10, 10));
 
-        JPanel formCard = AutomatedApplication.createRoundedPanel(Color.WHITE, new Color(199, 210, 254), 16);
+        JPanel formCard = AutomatedApplication.createRoundedPanel(Color.WHITE, new Color(199, 210, 254), 14);
         formCard.setLayout(new GridBagLayout());
-        formCard.setBorder(new EmptyBorder(16, 20, 16, 20));
+        formCard.setBorder(new EmptyBorder(14, 18, 14, 18));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(3, 0, 3, 0);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        JTextField txtProgName = new JTextField();
-        txtProgName.setPreferredSize(new Dimension(0, 30));
+        JTextField txtName = new JTextField();
+        txtName.setPreferredSize(new Dimension(0, 30));
 
-        JTextField txtEligibility = new JTextField();
-        txtEligibility.setPreferredSize(new Dimension(0, 30));
+        JTextField txtElig = new JTextField();
+        txtElig.setPreferredSize(new Dimension(0, 30));
 
-        JTextField txtBenefits = new JTextField();
-        txtBenefits.setPreferredSize(new Dimension(0, 30));
+        JTextField txtBen = new JTextField();
+        txtBen.setPreferredSize(new Dimension(0, 30));
 
         JButton saveBtn = AutomatedApplication.createRoundedButton(
-            "Save & Publish Scholarship", AutomatedApplication.BTN_GREEN, Color.WHITE, 10
+            "Save & Publish Scholarship", AutomatedApplication.BTN_GREEN, Color.WHITE, 8
         );
         saveBtn.setPreferredSize(new Dimension(0, 36));
 
         int r = 0;
+        gbc.insets = new Insets(2, 0, 2, 0);
         gbc.gridx = 0; gbc.gridy = r++; formCard.add(new JLabel("Scholarship Program Name:"), gbc);
-        gbc.gridy = r++; formCard.add(txtProgName, gbc);
+        gbc.gridy = r++; formCard.add(txtName, gbc);
 
         gbc.gridy = r++; formCard.add(new JLabel("Eligibility Requirements:"), gbc);
-        gbc.gridy = r++; formCard.add(txtEligibility, gbc);
+        gbc.gridy = r++; formCard.add(txtElig, gbc);
 
         gbc.gridy = r++; formCard.add(new JLabel("Scholarship Benefits / Allowance:"), gbc);
-        gbc.gridy = r++; formCard.add(txtBenefits, gbc);
+        gbc.gridy = r++; formCard.add(txtBen, gbc);
 
-        gbc.gridy = r++; gbc.insets = new Insets(10, 0, 0, 0);
+        gbc.gridy = r++; gbc.insets = new Insets(8, 0, 0, 0);
         formCard.add(saveBtn, gbc);
 
         String[] cols = {"Scholarship Program Name", "Eligibility Requirements", "Scholarship Benefits / Allowance"};
@@ -325,70 +315,71 @@ public class AdminPanel {
             }
         };
 
-        JTable table = new JTable(model);
-        table.setRowHeight(26);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-
-        Runnable refreshTable = () -> {
+        Runnable reloadTable = () -> {
             model.setRowCount(0);
             for (String[] prog : customPrograms) {
                 model.addRow(new Object[]{prog[0], prog[1], prog[2]});
             }
         };
-        refreshTable.run();
+        reloadTable.run();
 
-        JButton deleteBtn = AutomatedApplication.createActionButton(
-            "Delete Selected", AutomatedApplication.BTN_RED, Color.WHITE, 145, 34
-        );
-        JButton closeBtn = AutomatedApplication.createActionButton(
-            "Close Window", AutomatedApplication.PRIMARY_DARK, Color.WHITE, 130, 34
-        );
+        JTable table = new JTable(model);
+        table.setRowHeight(26);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
 
         saveBtn.addActionListener(e -> {
-            String name = txtProgName.getText().trim();
-            String elig = txtEligibility.getText().trim();
-            String ben = txtBenefits.getText().trim();
+            String name = txtName.getText().trim();
+            String elig = txtElig.getText().trim();
+            String ben = txtBen.getText().trim();
 
             if (name.isEmpty() || elig.isEmpty() || ben.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Please fill out all scholarship fields.", "Missing Info", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Please complete all scholarship fields.", "Missing Info", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             customPrograms.add(new String[]{name, elig, ben});
-            ScholarshipManager.saveAllData();
-            refreshTable.run();
-            txtProgName.setText("");
-            txtEligibility.setText("");
-            txtBenefits.setText("");
-            JOptionPane.showMessageDialog(dialog, "Scholarship program added! It is now visible in Applicant Portal.", "Added", JOptionPane.INFORMATION_MESSAGE);
+            saveCustomProgramsToFile();
+            reloadTable.run();
+
+            txtName.setText("");
+            txtElig.setText("");
+            txtBen.setText("");
+
+            JOptionPane.showMessageDialog(dialog, "Scholarship program saved and published!", "Saved", JOptionPane.INFORMATION_MESSAGE);
         });
 
+        JButton deleteBtn = AutomatedApplication.createActionButton(
+            "Delete Selected", AutomatedApplication.BTN_RED, Color.WHITE, 140, 34
+        );
         deleteBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if (row == -1) {
-                JOptionPane.showMessageDialog(dialog, "Please select a scholarship program to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            if (row < 0 || row >= customPrograms.size()) {
+                JOptionPane.showMessageDialog(dialog, "Select a custom scholarship program to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             customPrograms.remove(row);
-            ScholarshipManager.saveAllData();
-            refreshTable.run();
+            saveCustomProgramsToFile();
+            reloadTable.run();
             JOptionPane.showMessageDialog(dialog, "Selected scholarship program deleted.", "Deleted", JOptionPane.INFORMATION_MESSAGE);
         });
 
+        JButton closeBtn = AutomatedApplication.createActionButton(
+            "Close Window", AutomatedApplication.PRIMARY_DARK, Color.WHITE, 130, 34
+        );
         closeBtn.addActionListener(e -> dialog.dispose());
 
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        btnPanel.setOpaque(false);
-        btnPanel.add(deleteBtn);
-        btnPanel.add(closeBtn);
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(deleteBtn);
+        bottomPanel.add(closeBtn);
 
         JPanel body = new JPanel(new BorderLayout(10, 10));
         body.setOpaque(false);
         body.setBorder(new EmptyBorder(14, 14, 14, 14));
         body.add(formCard, BorderLayout.NORTH);
         body.add(new JScrollPane(table), BorderLayout.CENTER);
-        body.add(btnPanel, BorderLayout.SOUTH);
+        body.add(bottomPanel, BorderLayout.SOUTH);
 
         dialog.add(body, BorderLayout.CENTER);
         dialog.setVisible(true);
@@ -396,14 +387,14 @@ public class AdminPanel {
 
     public static void openReviewApplicationsDialog(JFrame parent) {
         JDialog dialog = new JDialog(parent, "Review Applications", true);
-        dialog.setSize(1120, 520);
+        dialog.setSize(980, 480);
         dialog.setLocationRelativeTo(parent);
         dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
         dialog.setLayout(new BorderLayout(10, 10));
 
         String[] cols = {
             "App ID", "Applicant ID", "Name", "Program",
-            "GWA", "Income", "Uploaded File", "Doc Status", "App Status"
+            "GWA", "Annual Income", "Document", "Status"
         };
         DefaultTableModel model = new DefaultTableModel(cols, 0) {
             @Override
@@ -412,21 +403,12 @@ public class AdminPanel {
             }
         };
 
-        JTable table = new JTable(model);
-        table.setRowHeight(26);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-
-        Runnable refreshTable = () -> {
+        Runnable reloadApps = () -> {
             model.setRowCount(0);
             for (ScholarshipApplication sa : ScholarshipManager.applicationList) {
-                String uploadedFile = (sa.getDocument() != null && sa.getDocument().getFileName() != null)
+                String docName = (sa.getDocument() != null && sa.getDocument().getFileName() != null)
                     ? sa.getDocument().getFileName()
                     : "None";
-                String docStatus = (sa.getDocument() != null && sa.getDocument().getVerificationStatus() != null)
-                    ? sa.getDocument().getVerificationStatus()
-                    : "Pending";
-
                 model.addRow(new Object[]{
                     sa.getApplicationID(),
                     sa.getApplicantID(),
@@ -434,258 +416,621 @@ public class AdminPanel {
                     sa.getScholarshipType(),
                     String.format("%.2f", sa.getGwa()),
                     String.format("P%.2f", sa.getAnnualIncome()),
-                    uploadedFile,
-                    docStatus,
+                    docName,
                     sa.getStatus()
                 });
             }
         };
-        refreshTable.run();
+        reloadApps.run();
 
-        table.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    int row = table.getSelectedRow();
-                    if (row != -1) {
-                        String appId = (String) model.getValueAt(row, 0);
-                        String fileName = (String) model.getValueAt(row, 6);
-                        openUploadedFileForApplication(dialog, appId, fileName);
-                    }
-                }
+        JTable table = new JTable(model);
+        table.setRowHeight(28);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        JButton viewFilesBtn = AutomatedApplication.createActionButton(
+            "View Files", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 125, 34
+        );
+        viewFilesBtn.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0 || row >= ScholarshipManager.applicationList.size()) {
+                JOptionPane.showMessageDialog(dialog, "Select an application first.", "No Selection", JOptionPane.WARNING_MESSAGE);
+                return;
             }
+            ScholarshipApplication sa = ScholarshipManager.applicationList.get(row);
+            openAdminUploadedFilesChooser(dialog, sa);
         });
 
-        JButton openFileBtn = AutomatedApplication.createActionButton(
-            "Open File", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 120, 34
-        );
         JButton approveBtn = AutomatedApplication.createActionButton(
-            "Approve Selected", AutomatedApplication.BTN_GREEN, Color.WHITE, 145, 34
+            "Approve", AutomatedApplication.BTN_GREEN, Color.WHITE, 120, 34
         );
+        approveBtn.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0 || row >= ScholarshipManager.applicationList.size()) {
+                JOptionPane.showMessageDialog(dialog, "Select an application to approve.", "No Selection", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            ScholarshipApplication sa = ScholarshipManager.applicationList.get(row);
+            sa.updateStatus("Approved");
+            ScholarshipManager.saveAllData();
+            ApplicantPanel.appendDisbursementNotice(
+                sa.getApplicantID(),
+                "Application Approved: " + sa.getApplicationID(),
+                "Your scholarship application (" + sa.getApplicationID() + " - " + sa.getScholarshipType() + ") has been Approved by Admin."
+            );
+            reloadApps.run();
+            JOptionPane.showMessageDialog(dialog, "Application approved and notice sent to applicant.", "Approved", JOptionPane.INFORMATION_MESSAGE);
+        });
+
         JButton rejectBtn = AutomatedApplication.createActionButton(
-            "Reject Selected", AutomatedApplication.BTN_RED, Color.WHITE, 145, 34
+            "Reject", AutomatedApplication.BTN_RED, Color.WHITE, 120, 34
         );
+        rejectBtn.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0 || row >= ScholarshipManager.applicationList.size()) {
+                JOptionPane.showMessageDialog(dialog, "Select an application to reject.", "No Selection", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            ScholarshipApplication sa = ScholarshipManager.applicationList.get(row);
+            sa.updateStatus("Rejected");
+            ScholarshipManager.saveAllData();
+            ApplicantPanel.appendDisbursementNotice(
+                sa.getApplicantID(),
+                "Application Rejected: " + sa.getApplicationID(),
+                "Your scholarship application (" + sa.getApplicationID() + " - " + sa.getScholarshipType() + ") has been Rejected by Admin."
+            );
+            reloadApps.run();
+            JOptionPane.showMessageDialog(dialog, "Application rejected and notice sent to applicant.", "Rejected", JOptionPane.INFORMATION_MESSAGE);
+        });
+
         JButton closeBtn = AutomatedApplication.createActionButton(
             "Close Window", AutomatedApplication.PRIMARY_DARK, Color.WHITE, 130, 34
         );
-
-        openFileBtn.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if (row == -1) {
-                JOptionPane.showMessageDialog(dialog, "Please select an application first.", "No Selection", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            String appId = (String) model.getValueAt(row, 0);
-            String fileName = (String) model.getValueAt(row, 6);
-            openUploadedFileForApplication(dialog, appId, fileName);
-        });
-
-        approveBtn.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if (row == -1) {
-                JOptionPane.showMessageDialog(dialog, "Please select an application first.", "No Selection", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            String appId = (String) model.getValueAt(row, 0);
-            ScholarshipApplication sa = findAppById(appId);
-            if (sa != null) {
-                sa.setStatus("Approved");
-                ScholarshipManager.saveAllData();
-                refreshTable.run();
-                JOptionPane.showMessageDialog(dialog, "Application " + appId + " marked as Approved.");
-            }
-        });
-
-        rejectBtn.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if (row == -1) {
-                JOptionPane.showMessageDialog(dialog, "Please select an application first.", "No Selection", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            String appId = (String) model.getValueAt(row, 0);
-            ScholarshipApplication sa = findAppById(appId);
-            if (sa != null) {
-                sa.setStatus("Rejected");
-                ScholarshipManager.saveAllData();
-                refreshTable.run();
-                JOptionPane.showMessageDialog(dialog, "Application " + appId + " marked as Rejected.");
-            }
-        });
-
         closeBtn.addActionListener(e -> dialog.dispose());
 
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        btnPanel.setOpaque(false);
-        btnPanel.add(openFileBtn);
-        btnPanel.add(approveBtn);
-        btnPanel.add(rejectBtn);
-        btnPanel.add(closeBtn);
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(viewFilesBtn);
+        bottomPanel.add(approveBtn);
+        bottomPanel.add(rejectBtn);
+        bottomPanel.add(closeBtn);
 
         JPanel body = new JPanel(new BorderLayout(10, 10));
         body.setOpaque(false);
         body.setBorder(new EmptyBorder(14, 14, 14, 14));
         body.add(new JScrollPane(table), BorderLayout.CENTER);
-        body.add(btnPanel, BorderLayout.SOUTH);
+        body.add(bottomPanel, BorderLayout.SOUTH);
 
         dialog.add(body, BorderLayout.CENTER);
         dialog.setVisible(true);
     }
 
-    public static void openDisbursementMonitoringDialog(JFrame parent) {
-        JDialog dialog = new JDialog(parent, "Disbursement Monitoring", true);
-        dialog.setSize(920, 480);
-        dialog.setLocationRelativeTo(parent);
-        dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
-        dialog.setLayout(new BorderLayout(10, 10));
+    private static List<String> collectAdminUploadedFiles(ScholarshipApplication sa) {
+        Map<String, String> entries = new LinkedHashMap<>();
+        if (sa == null) {
+            return new ArrayList<>();
+        }
 
-        String[] cols = {"Disbursement ID", "Application ID", "Applicant ID", "Applicant Name", "Amount", "Status", "Date"};
-        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+        String savedRaw = ApplicantPanel.uploadedFilePathsByAppId.get(sa.getApplicationID());
+        if (savedRaw != null && !savedRaw.trim().isEmpty()) {
+            for (String p : savedRaw.split("\\|\\|")) {
+                String trimmed = p.trim();
+                if (!trimmed.isEmpty()) {
+                    File f = new File(trimmed);
+                    entries.put(f.getName(), f.getAbsolutePath());
+                }
+            }
+        }
+
+        if (sa.getDocument() != null && sa.getDocument().getFileName() != null) {
+            String[] names = sa.getDocument().getFileName().split(",\\s*");
+            for (String rawName : names) {
+                String name = rawName.trim();
+                if (!name.isEmpty() && !entries.containsKey(name)) {
+                    File local = new File(name);
+                    entries.put(name, local.exists() ? local.getAbsolutePath() : name);
+                }
+            }
+        }
+
+        return new ArrayList<>(entries.values());
+    }
+
+    private static void launchAdminSingleFile(Component parent, String pathOrName) {
+        File fileToOpen = new File(pathOrName);
+        if (!fileToOpen.exists()) {
+            File local = new File(fileToOpen.getName());
+            if (local.exists()) {
+                fileToOpen = local;
+            }
+        }
+        if (!fileToOpen.exists()) {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Locate File: " + fileToOpen.getName());
+            int res = chooser.showOpenDialog(parent);
+            if (res == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
+                fileToOpen = chooser.getSelectedFile();
+            }
+        }
+        if (!fileToOpen.exists()) {
+            JOptionPane.showMessageDialog(parent, "Unable to locate file: " + pathOrName, "File Not Found", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(fileToOpen);
+            } else {
+                JOptionPane.showMessageDialog(parent, "Desktop file opening is not supported on this system.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Could not open file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private static void openAdminUploadedFilesChooser(Component parent, ScholarshipApplication sa) {
+        List<String> files = collectAdminUploadedFiles(sa);
+        if (files.isEmpty()) {
+            JOptionPane.showMessageDialog(parent, "No uploaded file found.", "File Not Found", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JDialog fileDialog = new JDialog(
+            SwingUtilities.getWindowAncestor(parent),
+            "Uploaded Files — " + sa.getApplicationID() + " (" + sa.getApplicantName() + ")",
+            Dialog.ModalityType.APPLICATION_MODAL
+        );
+        fileDialog.setSize(640, 340);
+        fileDialog.setLocationRelativeTo(parent);
+        fileDialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
+        fileDialog.setLayout(new BorderLayout(10, 10));
+
+        String[] cols = {"#", "File Name", "Path / Status"};
+        DefaultTableModel fileModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
 
-        JTable table = new JTable(model);
-        table.setRowHeight(26);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        for (int i = 0; i < files.size(); i++) {
+            File f = new File(files.get(i));
+            boolean exists = f.exists() || new File(f.getName()).exists();
+            fileModel.addRow(new Object[]{
+                i + 1,
+                f.getName(),
+                exists ? f.getAbsolutePath() : "Not found on disk (select to locate)"
+            });
+        }
 
-        Runnable refreshTable = () -> {
-            model.setRowCount(0);
-            for (Disbursement d : ScholarshipManager.disbursementList) {
-                model.addRow(new Object[]{
-                    d.getDisbursementID(),
-                    d.getApplicationID(),
-                    d.getApplicantID(),
-                    d.getApplicantName(),
-                    String.format("P%.2f", d.getAmount()),
-                    d.getPaymentStatus(),
-                    d.getDate()
-                });
+        JTable fileTable = new JTable(fileModel);
+        fileTable.setRowHeight(28);
+        fileTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        fileTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        fileTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+        fileTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+        fileTable.getColumnModel().getColumn(2).setPreferredWidth(360);
+        if (!files.isEmpty()) {
+            fileTable.setRowSelectionInterval(0, 0);
+        }
+
+        Runnable openSelected = () -> {
+            int sel = fileTable.getSelectedRow();
+            if (sel < 0 || sel >= files.size()) {
+                JOptionPane.showMessageDialog(fileDialog, "Select a file from the list to view.", "No File Selected", JOptionPane.WARNING_MESSAGE);
+                return;
             }
+            launchAdminSingleFile(fileDialog, files.get(sel));
         };
-        refreshTable.run();
 
-        JButton addDisbBtn = AutomatedApplication.createActionButton(
-            "Record Disbursement", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 165, 34
-        );
-        JButton releaseBtn = AutomatedApplication.createActionButton(
-            "Mark Released", AutomatedApplication.BTN_GREEN, Color.WHITE, 140, 34
-        );
-        JButton closeBtn = AutomatedApplication.createActionButton(
-            "Close Window", AutomatedApplication.BTN_RED, Color.WHITE, 130, 34
-        );
-
-        addDisbBtn.addActionListener(e -> {
-            String appId = JOptionPane.showInputDialog(dialog, "Enter Application ID (e.g., APP-101):");
-            if (appId == null || appId.trim().isEmpty()) return;
-
-            ScholarshipApplication sa = findAppById(appId.trim());
-            if (sa == null) {
-                JOptionPane.showMessageDialog(dialog, "Application ID not found.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            String amtRaw = JOptionPane.showInputDialog(dialog, "Enter Disbursement Amount (e.g., 5000):");
-            if (amtRaw == null || amtRaw.trim().isEmpty()) return;
-
-            try {
-                double amt = Double.parseDouble(amtRaw.trim());
-                if (amt <= 0) throw new NumberFormatException();
-
-                String disbId = "DSB-" + (ScholarshipManager.disbursementList.size() + 101);
-                Disbursement disb = new Disbursement(
-                    disbId,
-                    sa.getApplicationID(),
-                    sa.getApplicantID(),
-                    sa.getApplicantName(),
-                    amt,
-                    LocalDate.now(),
-                    "Pending"
-                );
-                disb.recordDisbursement();
-                ScholarshipManager.disbursementList.add(disb);
-                ScholarshipManager.saveAllData();
-                refreshTable.run();
-                JOptionPane.showMessageDialog(dialog, "Disbursement recorded as Pending.");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(dialog, "Invalid amount.", "Input Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        releaseBtn.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if (row == -1) {
-                JOptionPane.showMessageDialog(dialog, "Please select a disbursement entry first.", "No Selection", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            String disbId = (String) model.getValueAt(row, 0);
-            for (Disbursement d : ScholarshipManager.disbursementList) {
-                if (d.getDisbursementID().equals(disbId)) {
-                    d.updatePaymentStatus("Released", LocalDate.now());
-                    ScholarshipManager.saveAllData();
-                    refreshTable.run();
-                    JOptionPane.showMessageDialog(dialog, "Disbursement " + disbId + " marked as Released.");
-                    return;
+        fileTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    openSelected.run();
                 }
             }
         });
 
-        closeBtn.addActionListener(e -> dialog.dispose());
+        JButton openSelectedBtn = AutomatedApplication.createActionButton(
+            "Open Selected", AutomatedApplication.BTN_GREEN, Color.WHITE, 140, 34
+        );
+        openSelectedBtn.addActionListener(e -> openSelected.run());
+
+        JButton closeBtn = AutomatedApplication.createActionButton(
+            "Close Window", AutomatedApplication.PRIMARY_DARK, Color.WHITE, 130, 34
+        );
+        closeBtn.addActionListener(e -> fileDialog.dispose());
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         btnPanel.setOpaque(false);
-        btnPanel.add(addDisbBtn);
-        btnPanel.add(releaseBtn);
+        btnPanel.add(openSelectedBtn);
         btnPanel.add(closeBtn);
+
+        JPanel wrapper = new JPanel(new BorderLayout(10, 10));
+        wrapper.setOpaque(false);
+        wrapper.setBorder(new EmptyBorder(14, 14, 14, 14));
+        wrapper.add(new JScrollPane(fileTable), BorderLayout.CENTER);
+        wrapper.add(btnPanel, BorderLayout.SOUTH);
+
+        fileDialog.add(wrapper, BorderLayout.CENTER);
+        fileDialog.setVisible(true);
+    }
+
+    private static Disbursement findDisbursementByAppIdSafe(String appId) {
+        if (appId == null) {
+            return null;
+        }
+        try {
+            Method m = ScholarshipManager.class.getMethod("findDisbursementByApplicationID", String.class);
+            Object res = m.invoke(null, appId);
+            if (res instanceof Disbursement) {
+                return (Disbursement) res;
+            }
+        } catch (Exception ignored) {
+        }
+        for (Disbursement d : ScholarshipManager.disbursementList) {
+            if (appId.equalsIgnoreCase(d.getApplicationID())) {
+                return d;
+            }
+        }
+        return null;
+    }
+
+    private static Disbursement updateDisbursementAmount(Disbursement d, double newAmount) {
+        if (d == null) {
+            return null;
+        }
+        try {
+            Method m = d.getClass().getMethod("setAmount", double.class);
+            m.invoke(d, newAmount);
+            return d;
+        } catch (Exception ignored) {
+        }
+        try {
+            java.lang.reflect.Field f = d.getClass().getDeclaredField("amount");
+            f.setAccessible(true);
+            f.setDouble(d, newAmount);
+            return d;
+        } catch (Exception ignored) {
+        }
+        Disbursement replacement = new Disbursement(
+            d.getDisbursementID(),
+            d.getApplicationID(),
+            d.getApplicantID(),
+            d.getApplicantName(),
+            newAmount,
+            d.getDate(),
+            d.getPaymentStatus()
+        );
+        int listIdx = ScholarshipManager.disbursementList.indexOf(d);
+        if (listIdx >= 0) {
+            ScholarshipManager.disbursementList.set(listIdx, replacement);
+        } else {
+            ScholarshipManager.disbursementList.add(replacement);
+        }
+        return replacement;
+    }
+
+    private static Disbursement ensureDisbursementForApplication(ScholarshipApplication sa) {
+        if (sa == null) {
+            return null;
+        }
+        Disbursement existing = findDisbursementByAppIdSafe(sa.getApplicationID());
+        if (existing != null) {
+            return existing;
+        }
+        int nextNum = 101;
+        for (Disbursement d : ScholarshipManager.disbursementList) {
+            if (d.getDisbursementID() != null && d.getDisbursementID().startsWith("DISB-")) {
+                try {
+                    int n = Integer.parseInt(d.getDisbursementID().substring(5).trim());
+                    if (n >= nextNum) {
+                        nextNum = n + 1;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        String disbId = "DISB-" + nextNum;
+        Disbursement disb = new Disbursement(
+            disbId,
+            sa.getApplicationID(),
+            sa.getApplicantID(),
+            sa.getApplicantName(),
+            0.0,
+            LocalDate.now(),
+            "Pending"
+        );
+        disb.recordDisbursement();
+        ScholarshipManager.disbursementList.add(disb);
+        return disb;
+    }
+
+    private static void syncAllApplicationsToDisbursements() {
+        int before = ScholarshipManager.disbursementList.size();
+        for (ScholarshipApplication sa : ScholarshipManager.applicationList) {
+            ensureDisbursementForApplication(sa);
+        }
+        if (ScholarshipManager.disbursementList.size() != before) {
+            ScholarshipManager.saveAllData();
+        }
+    }
+
+    private static double parseCashAmountInput(Object rawValue) throws NumberFormatException {
+        if (rawValue == null) {
+            throw new NumberFormatException("Empty amount");
+        }
+        String cleaned = rawValue.toString()
+            .replace("₱", "")
+            .replace("P", "")
+            .replace(",", "")
+            .trim();
+        if (cleaned.isEmpty()) {
+            throw new NumberFormatException("Empty amount");
+        }
+        double amt = Double.parseDouble(cleaned);
+        if (Double.isNaN(amt) || Double.isInfinite(amt) || amt < 0) {
+            throw new NumberFormatException("Invalid amount");
+        }
+        return amt;
+    }
+
+    public static void openDisbursementMonitoringDialog(JFrame parent) {
+        syncAllApplicationsToDisbursements();
+
+        JDialog dialog = new JDialog(parent, "Disbursement Monitoring", true);
+        dialog.setSize(980, 480);
+        dialog.setLocationRelativeTo(parent);
+        dialog.getContentPane().setBackground(AutomatedApplication.BG_SOFT);
+        dialog.setLayout(new BorderLayout(10, 10));
+
+        String[] cols = {
+            "Disbursement ID", "App ID", "Applicant ID", "Applicant Name",
+            "Cash Grant Amount", "Status", "Date"
+        };
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 4;
+            }
+        };
+
+        final List<Disbursement> rowDisbursements = new ArrayList<>();
+        final boolean[] updatingTable = {false};
+
+        Runnable reloadDisb = () -> {
+            updatingTable[0] = true;
+            try {
+                syncAllApplicationsToDisbursements();
+                model.setRowCount(0);
+                rowDisbursements.clear();
+
+                for (ScholarshipApplication sa : ScholarshipManager.applicationList) {
+                    Disbursement d = ensureDisbursementForApplication(sa);
+                    rowDisbursements.add(d);
+                    String applicantName = (d.getApplicantName() != null && !d.getApplicantName().trim().isEmpty())
+                        ? d.getApplicantName()
+                        : sa.getApplicantName();
+                    model.addRow(new Object[]{
+                        d.getDisbursementID(),
+                        sa.getApplicationID(),
+                        sa.getApplicantID(),
+                        applicantName,
+                        String.format("P%.2f", d.getAmount()),
+                        d.getPaymentStatus(),
+                        d.getDate()
+                    });
+                }
+            } finally {
+                updatingTable[0] = false;
+            }
+        };
+        reloadDisb.run();
+
+        JTable table = new JTable(model);
+        table.setRowHeight(28);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+
+        model.addTableModelListener(e -> {
+            if (updatingTable[0] || e.getType() != TableModelEvent.UPDATE) {
+                return;
+            }
+            int row = e.getFirstRow();
+            int col = e.getColumn();
+            if (col != 4 || row < 0 || row >= rowDisbursements.size()) {
+                return;
+            }
+
+            Disbursement d = rowDisbursements.get(row);
+            Object edited = model.getValueAt(row, col);
+            updatingTable[0] = true;
+            try {
+                double parsedAmt = parseCashAmountInput(edited);
+                Disbursement updated = updateDisbursementAmount(d, parsedAmt);
+                if (updated != null) {
+                    rowDisbursements.set(row, updated);
+                    d = updated;
+                }
+                model.setValueAt(String.format("P%.2f", parsedAmt), row, col);
+                ScholarshipManager.saveAllData();
+
+                ApplicantPanel.appendDisbursementNotice(
+                    d.getApplicantID(),
+                    "Cash Grant Updated (" + d.getPaymentStatus() + "): " + String.format("P%.2f", parsedAmt),
+                    String.format(
+                        "Your cash grant of P%.2f (Disbursement ID: %s, App ID: %s, Date: %s) is currently %s.",
+                        parsedAmt, d.getDisbursementID(), d.getApplicationID(), d.getDate(), d.getPaymentStatus()
+                    )
+                );
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(
+                    dialog,
+                    "Invalid cash grant amount. Enter a valid number (e.g., 10000 or 10000.00).",
+                    "Input Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                model.setValueAt(String.format("P%.2f", d.getAmount()), row, col);
+            } finally {
+                updatingTable[0] = false;
+            }
+        });
+
+        Runnable commitActiveCellEdit = () -> {
+            if (table.isEditing() && table.getCellEditor() != null) {
+                table.getCellEditor().stopCellEditing();
+            }
+        };
+
+        JButton pendingBtn = AutomatedApplication.createActionButton(
+            "Mark Pending", AutomatedApplication.PRIMARY_ACCENT, Color.WHITE, 140, 34
+        );
+        pendingBtn.addActionListener(e -> {
+            commitActiveCellEdit.run();
+            int row = table.getSelectedRow();
+            if (row < 0 || row >= rowDisbursements.size()) {
+                JOptionPane.showMessageDialog(dialog, "Select a disbursement record to mark as Pending.", "No Selection", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            Disbursement d = rowDisbursements.get(row);
+            String amtRaw = JOptionPane.showInputDialog(
+                dialog,
+                "Confirm or enter Cash Grant Amount for Pending status (in P):",
+                String.format("%.2f", d.getAmount())
+            );
+            if (amtRaw == null || amtRaw.trim().isEmpty()) {
+                return;
+            }
+            double pendingAmount;
+            try {
+                pendingAmount = parseCashAmountInput(amtRaw);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "Invalid cash grant amount.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            Disbursement updated = updateDisbursementAmount(d, pendingAmount);
+            if (updated != null) {
+                rowDisbursements.set(row, updated);
+                d = updated;
+            }
+            d.updatePaymentStatus("Pending", LocalDate.now());
+            ScholarshipManager.saveAllData();
+            ApplicantPanel.appendDisbursementNotice(
+                d.getApplicantID(),
+                "Cash Grant Pending: " + String.format("P%.2f", pendingAmount),
+                String.format(
+                    "Your cash grant of P%.2f (Disbursement ID: %s, App ID: %s, Date: %s) is currently marked as Pending.",
+                    pendingAmount, d.getDisbursementID(), d.getApplicationID(), d.getDate()
+                )
+            );
+            reloadDisb.run();
+            JOptionPane.showMessageDialog(dialog, "Cash grant marked as Pending and notice sent to applicant.", "Pending", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        JButton releaseBtn = AutomatedApplication.createActionButton(
+            "Mark Released", AutomatedApplication.BTN_GREEN, Color.WHITE, 140, 34
+        );
+        releaseBtn.addActionListener(e -> {
+            commitActiveCellEdit.run();
+            int row = table.getSelectedRow();
+            if (row < 0 || row >= rowDisbursements.size()) {
+                JOptionPane.showMessageDialog(dialog, "Select a disbursement record to release.", "No Selection", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            Disbursement d = rowDisbursements.get(row);
+            String amtRaw = JOptionPane.showInputDialog(
+                dialog,
+                "Confirm or enter Cash Grant Amount to Release (in P):",
+                String.format("%.2f", d.getAmount())
+            );
+            if (amtRaw == null || amtRaw.trim().isEmpty()) {
+                return;
+            }
+            double finalAmount;
+            try {
+                finalAmount = parseCashAmountInput(amtRaw);
+                if (finalAmount <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "Invalid cash grant amount.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            Disbursement updated = updateDisbursementAmount(d, finalAmount);
+            if (updated != null) {
+                rowDisbursements.set(row, updated);
+                d = updated;
+            }
+            d.updatePaymentStatus("Released", LocalDate.now());
+            ScholarshipManager.saveAllData();
+            ApplicantPanel.appendDisbursementNotice(
+                d.getApplicantID(),
+                "Cash Grant Released: " + String.format("P%.2f", finalAmount),
+                String.format(
+                    "Your grant of P%.2f has been released (Disbursement ID: %s, App ID: %s, Date: %s).",
+                    finalAmount, d.getDisbursementID(), d.getApplicationID(), d.getDate()
+                )
+            );
+            reloadDisb.run();
+            JOptionPane.showMessageDialog(dialog, "Cash grant marked as Released and notice sent to applicant.", "Released", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        JButton closeBtn = AutomatedApplication.createActionButton(
+            "Close Window", AutomatedApplication.PRIMARY_DARK, Color.WHITE, 130, 34
+        );
+        closeBtn.addActionListener(e -> {
+            commitActiveCellEdit.run();
+            dialog.dispose();
+        });
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(pendingBtn);
+        bottomPanel.add(releaseBtn);
+        bottomPanel.add(closeBtn);
 
         JPanel body = new JPanel(new BorderLayout(10, 10));
         body.setOpaque(false);
         body.setBorder(new EmptyBorder(14, 14, 14, 14));
         body.add(new JScrollPane(table), BorderLayout.CENTER);
-        body.add(btnPanel, BorderLayout.SOUTH);
+        body.add(bottomPanel, BorderLayout.SOUTH);
 
         dialog.add(body, BorderLayout.CENTER);
         dialog.setVisible(true);
     }
 
-    public static void openReportsDialog(JFrame parent) {
+    public static void openSummaryReportDialog(JFrame parent) {
+        int totalApplicants = ScholarshipManager.applicantList.size();
         int totalApps = ScholarshipManager.applicationList.size();
         int approved = 0;
         int rejected = 0;
         int pending = 0;
-        double totalDisbursed = 0.0;
 
         for (ScholarshipApplication sa : ScholarshipManager.applicationList) {
             String st = sa.getStatus();
-            if ("Approved".equalsIgnoreCase(st) || "Eligible".equalsIgnoreCase(st)) {
+            if ("Approved".equalsIgnoreCase(st)) {
                 approved++;
-            } else if ("Rejected".equalsIgnoreCase(st) || "Not Eligible".equalsIgnoreCase(st) || "Incomplete".equalsIgnoreCase(st)) {
+            } else if ("Rejected".equalsIgnoreCase(st)) {
                 rejected++;
             } else {
                 pending++;
             }
         }
 
+        double totalReleased = 0.0;
         for (Disbursement d : ScholarshipManager.disbursementList) {
             if ("Released".equalsIgnoreCase(d.getPaymentStatus())) {
-                totalDisbursed += d.getAmount();
+                totalReleased += d.getAmount();
             }
         }
 
-        String summary = String.format(
-            "<html><div style='font-family: Segoe UI; padding: 8px; line-height: 1.5;'>" +
-            "<h3 style='margin:0 0 8px 0;'>Scholarship & Disbursement Summary Report</h3>" +
-            "<b>Total Registered Applicants:</b> %d<br>" +
-            "<b>Total Applications Submitted:</b> %d<br>" +
-            "<b>Approved / Eligible:</b> <font color='#15803d'>%d</font><br>" +
-            "<b>Pending Review:</b> <font color='#b45309'>%d</font><br>" +
-            "<b>Rejected / Incomplete:</b> <font color='#dc2626'>%d</font><br>" +
-            "<b>Total Released Disbursements:</b> <font color='#4338ca'>P%.2f</font></div></html>",
-            ScholarshipManager.applicantList.size(), totalApps, approved, pending, rejected, totalDisbursed
-        );
+        String summaryText = "System Summary Report\n\n"
+            + "Registered Applicants: " + totalApplicants + "\n"
+            + "Total Applications: " + totalApps + "\n"
+            + "Approved Applications: " + approved + "\n"
+            + "Rejected Applications: " + rejected + "\n"
+            + "Pending / Other Applications: " + pending + "\n"
+            + "Total Released Disbursements: P" + String.format("%.2f", totalReleased);
 
-        JOptionPane.showMessageDialog(parent, new JLabel(summary), "Summary Report", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(parent, summaryText, "Summary Report", JOptionPane.INFORMATION_MESSAGE);
     }
 }
